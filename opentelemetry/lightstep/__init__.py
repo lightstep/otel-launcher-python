@@ -3,7 +3,14 @@ import logging
 import os
 import sys
 
-from opentelemetry import trace
+# from dynaconf import settings
+
+from opentelemetry import propagators, trace
+from opentelemetry.propagators import composite
+import opentelemetry.sdk.trace.propagation.b3_format as b3_format
+from opentelemetry.trace.propagation.tracecontexthttptextformat import (
+    TraceContextHTTPTextFormat,
+)
 from opentelemetry.ext.otlp.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace import Resource, TracerProvider
 from opentelemetry.sdk.trace.export import (
@@ -11,8 +18,14 @@ from opentelemetry.sdk.trace.export import (
     SimpleExportSpanProcessor,
 )
 
-_ENV_VAR_LS_DEBUG = "LS_DEBUG"
 _ENV_VAR_LS_ACCESS_TOKEN = "LS_ACCESS_TOKEN"
+_ENV_VAR_LS_SATELLITE_URL = "LS_SATELLITE_URL"
+_ENV_VAR_LS_METRICS_URL = "LS_METRICS_URL"
+_ENV_VAR_LS_SERVICE_NAME = "LS_SERVICE_NAME"
+_ENV_VAR_LS_SERVICE_VERSION = "LS_SERVICE_VERSION"
+_ENV_VAR_LS_PROPAGATOR = "LS_PROPAGATOR"
+_ENV_VAR_LS_GLOBAL_TAGS = "LS_GLOBAL_TAGS"
+_ENV_VAR_LS_DEBUG = "LS_DEBUG"
 
 _DEFAULT_SATELLITE_URL = "ingest.lightstep.com:443"
 _DEFAULT_SERVICE_VERSION = "unknown"
@@ -22,6 +35,13 @@ logger = logging.getLogger("opentelemetry.lightstep")
 
 class InvalidConfigurationException(Exception):
     pass
+
+
+def configure_propagators():
+    multiformat_propagator = composite.CompositeHTTPPropagator(
+        [TraceContextHTTPTextFormat(), b3_format.B3Format()]
+    )
+    propagators.set_global_httptextformat(multiformat_propagator)
 
 
 def get_tracer(
@@ -34,7 +54,9 @@ def get_tracer(
     if service_name is None:
         logger.error("invalid configuration: missing service_name")
         sys.exit(1)
-    trace.set_tracer_provider(TracerProvider())
+
+    if trace.get_tracer_provider() is trace.DefaultTracerProvider:
+        trace.set_tracer_provider(TracerProvider())
 
     if token == "":
         token = os.getenv(_ENV_VAR_LS_ACCESS_TOKEN, "")
@@ -64,4 +86,6 @@ def get_tracer(
     trace.get_tracer_provider().resource = Resource(
         {"service.name": service_name, "service.version": service_version,}
     )
+    configure_propagators()
+
     return trace.get_tracer(__name__)
