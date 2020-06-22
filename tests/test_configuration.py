@@ -15,8 +15,7 @@
 import unittest
 from unittest.mock import patch
 
-import pytest
-from opentelemetry.lightstep import get_tracer
+from opentelemetry.lightstep import configure_opentelemetry
 
 
 class TestConfiguration(unittest.TestCase):
@@ -26,13 +25,13 @@ class TestConfiguration(unittest.TestCase):
     def test_no_service_name(self):
         with patch("sys.exit") as exit_mock:
             with self.assertLogs(level="ERROR") as log:
-                get_tracer()
+                configure_opentelemetry()
                 self.assertIn("missing service_name", log.output[0])
             assert exit_mock.called
 
     def test_no_token(self):
         with patch("sys.exit") as exit_mock:
             with self.assertLogs(level="ERROR") as log:
-                get_tracer(service_name="service-123")
+                configure_opentelemetry(service_name="service-123")
                 self.assertIn("missing token", log.output[0])
             assert exit_mock.called

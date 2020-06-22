@@ -1,13 +1,13 @@
 from client import App
-from opentelemetry.lightstep import get_tracer
+from opentelemetry import trace
+from opentelemetry.lightstep import configure_opentelemetry
 
-tracer = get_tracer(
+configure_opentelemetry(
     service_name="service-123",
     service_version="1.2.3",  # optional
-    token="my-token",  # optional
     satellite_url="ingest.lightstep.com:443",  # optional
-    debug=False,  # optional
+    debug=True,  # optional
 )
 
-app = App(tracer)
+app = App(trace.get_tracer(__name__))
 app.send_requests()

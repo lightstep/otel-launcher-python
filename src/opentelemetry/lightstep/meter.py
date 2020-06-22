@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
+import typing
 
 
-class TestTracer(unittest.TestCase):
-    def test_propagators(self):
-        pass
+def configure_metrics(config: typing.Dict):
+    pass
