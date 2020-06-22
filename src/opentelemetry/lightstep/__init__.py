@@ -1,21 +1,20 @@
-import grpc
 import logging
 import os
 import sys
 
-# from dynaconf import settings
+import grpc
 
-from opentelemetry import propagators, trace
-from opentelemetry.propagators import composite
 import opentelemetry.sdk.trace.propagation.b3_format as b3_format
-from opentelemetry.trace.propagation.tracecontexthttptextformat import (
-    TraceContextHTTPTextFormat,
-)
+from opentelemetry import propagators, trace
 from opentelemetry.ext.otlp.trace_exporter import OTLPSpanExporter
+from opentelemetry.propagators import composite
 from opentelemetry.sdk.trace import Resource, TracerProvider
 from opentelemetry.sdk.trace.export import (
     ConsoleSpanExporter,
     SimpleExportSpanProcessor,
+)
+from opentelemetry.trace.propagation.tracecontexthttptextformat import (
+    TraceContextHTTPTextFormat,
 )
 
 _ENV_VAR_LS_ACCESS_TOKEN = "LS_ACCESS_TOKEN"
@@ -37,6 +36,10 @@ class InvalidConfigurationException(Exception):
     pass
 
 
+def parse_global_tags():
+    pass
+
+
 def configure_propagators():
     multiformat_propagator = composite.CompositeHTTPPropagator(
         [TraceContextHTTPTextFormat(), b3_format.B3Format()]
@@ -55,14 +58,16 @@ def get_tracer(
         logger.error("invalid configuration: missing service_name")
         sys.exit(1)
 
-    if trace.get_tracer_provider() is trace.DefaultTracerProvider:
+    if isinstance(trace.get_tracer_provider(), trace.DefaultTracerProvider):
         trace.set_tracer_provider(TracerProvider())
 
     if token == "":
         token = os.getenv(_ENV_VAR_LS_ACCESS_TOKEN, "")
 
     if token == "" and satellite_url == _DEFAULT_SATELLITE_URL:
-        logger.error("token must be set to send data to %s", _DEFAULT_SATELLITE_URL)
+        logger.error(
+            "token must be set to send data to %s", _DEFAULT_SATELLITE_URL
+        )
         sys.exit(1)
 
     if debug or os.getenv(_ENV_VAR_LS_DEBUG, False):
@@ -84,7 +89,7 @@ def get_tracer(
         )
     )
     trace.get_tracer_provider().resource = Resource(
-        {"service.name": service_name, "service.version": service_version,}
+        {"service.name": service_name, "service.version": service_version}
     )
     configure_propagators()
 
