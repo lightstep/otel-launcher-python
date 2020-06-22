@@ -12,4 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .tracer import get_tracer
+import unittest
+
+from opentelemetry import propagators
+from opentelemetry.lightstep import get_tracer
+
+
+class TestTracer(unittest.TestCase):
+    def test_propagators(self):
+        pass
