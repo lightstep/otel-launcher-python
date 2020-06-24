@@ -25,8 +25,8 @@ from opentelemetry.trace.propagation.tracecontexthttptextformat import (
 
 from .tracer import configure_tracing
 
-_ENV_VAR_LS_ACCESS_TOKEN = "LS_ACCESS_TOKEN"
-_ENV_VAR_LS_SERVICE_NAME = "LS_SERVICE_NAME"
+_ENV_VAR_LS_ACCESS_TOKEN = os.getenv("LS_ACCESS_TOKEN", "")
+_ENV_VAR_LS_SERVICE_NAME = os.getenv("LS_SERVICE_NAME", None)
 
 _DEFAULT_SATELLITE_URL = "ingest.lightstep.com:443"
 _ENV_VAR_LS_SATELLITE_URL = os.getenv(
@@ -51,9 +51,9 @@ def configure_propagators():
 
 
 def configure_opentelemetry(
-    service_name: str = None,
+    service_name: str = _ENV_VAR_LS_SERVICE_NAME,
     service_version: str = _ENV_VAR_LS_SERVICE_VERSION,
-    token: str = "",
+    token: str = _ENV_VAR_LS_ACCESS_TOKEN,
     satellite_url: str = _DEFAULT_SATELLITE_URL,
     metrics_url: str = _DEFAULT_METRICS_URL,
     debug: bool = _ENV_VAR_LS_DEBUG,
@@ -61,9 +61,6 @@ def configure_opentelemetry(
     if service_name is None:
         logger.error("invalid configuration: missing service_name")
         sys.exit(1)
-
-    if token == "":
-        token = os.getenv(_ENV_VAR_LS_ACCESS_TOKEN, "")
 
     if token == "" and satellite_url == _DEFAULT_SATELLITE_URL:
         logger.error(
@@ -81,7 +78,7 @@ def configure_opentelemetry(
     }
 
     if debug:
-        logger.setLevel(logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG)
         logger.debug("debug logging enabled")
         logger.debug("configuration")
         logger.debug("-------------")

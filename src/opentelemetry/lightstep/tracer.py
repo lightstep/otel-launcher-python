@@ -25,6 +25,8 @@ from opentelemetry.sdk.trace.export import (
     BatchExportSpanProcessor,
 )
 
+from .version import __version__
+
 logger = logging.getLogger(__name__)
 
 
@@ -59,6 +61,8 @@ def configure_tracing(config: typing.Dict):
         {
             "service.name": config.get("service_name"),
             "service.version": config.get("service_version"),
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.version": __version__,
         }
     )
 
