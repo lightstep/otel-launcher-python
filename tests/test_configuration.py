@@ -12,26 +12,62 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
+from unittest import TestCase
 from unittest.mock import patch
+from time import sleep
+from sys import version_info
 
-from opentelemetry.lightstep import configure_opentelemetry
+from opentelemetry.lightstep.configuration import (
+    configure_opentelemetry, InvalidConfigurationError
+)
+from opentelemetry import trace
+from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
 
 
-class TestConfiguration(unittest.TestCase):
+class TestConfiguration(TestCase):
     def test_all_environment_variables_used(self):
         pass
 
     def test_no_service_name(self):
-        with patch("sys.exit") as exit_mock:
+        with self.assertRaises(InvalidConfigurationError):
             with self.assertLogs(level="ERROR") as log:
                 configure_opentelemetry()
                 self.assertIn("service name missing", log.output[0])
-            assert exit_mock.called
 
     def test_no_token(self):
-        with patch("sys.exit") as exit_mock:
+        with self.assertRaises(InvalidConfigurationError):
             with self.assertLogs(level="ERROR") as log:
                 configure_opentelemetry(service_name="service-123")
                 self.assertIn("token missing", log.output[0])
-            assert exit_mock.called
+
+    class MockBatchExportSpanProcessor(BatchExportSpanProcessor):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, schedule_delay_millis=1, **kwargs)
+
+    @patch(
+        "opentelemetry.lightstep.configuration.BatchExportSpanProcessor",
+        new=MockBatchExportSpanProcessor
+    )
+    @patch("opentelemetry.lightstep.tracer.LightstepOTLPSpanExporter.export")
+    def test_only_service_name_and_token(self, mock_otlp_span_exporter):
+
+        configure_opentelemetry(
+            service_name="service_123", access_token="a" * 104
+        )
+
+        with trace.get_tracer_provider().get_tracer(
+            __name__
+        ).start_as_current_span("name"):
+            pass
+
+        # The worker thread in MockBatchExportSpanProcessor is configured to
+        # wait 1ms before exporting. Sleeping here to give enough time to the
+        # export method mock to be called.
+        sleep(0.002)
+
+        # 3.5 does not include the assert_called method.
+        if (version_info.major, version_info.minor) == (3, 5):
+            with self.assertRaises(AssertionError):
+                mock_otlp_span_exporter.assert_not_called()
+        else:
+            mock_otlp_span_exporter.assert_called()
