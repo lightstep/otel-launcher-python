@@ -36,3 +36,8 @@ jobs:
       run: |
         pip install pytest .[test]
         pytest
+    - name: Coverage
+      if: matrix.python-version == 3.8
+      run: |
+        make cover
+        bash <(curl -s https://codecov.io/bash)

@@ -3,7 +3,7 @@ test:
 	pytest
 
 cover:
-	pytest --cov src/opentelemetry/lightstep
+	pytest --cov src/opentelemetry/lightstep --cov-report xml
 
 lint:
 	black . --diff --check
