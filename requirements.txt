@@ -6,3 +6,4 @@ opentelemetry-ext-otlp>=0.9b0
 opentelemetry-instrumentation>=0.9b0
 isort==4.3.21
 black
+flake8
