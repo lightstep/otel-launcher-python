@@ -26,12 +26,12 @@ class TestConfiguration(unittest.TestCase):
         with patch("sys.exit") as exit_mock:
             with self.assertLogs(level="ERROR") as log:
                 configure_opentelemetry()
-                self.assertIn("missing service_name", log.output[0])
+                self.assertIn("service name missing", log.output[0])
             assert exit_mock.called
 
     def test_no_token(self):
         with patch("sys.exit") as exit_mock:
             with self.assertLogs(level="ERROR") as log:
                 configure_opentelemetry(service_name="service-123")
-                self.assertIn("missing token", log.output[0])
+                self.assertIn("token missing", log.output[0])
             assert exit_mock.called
