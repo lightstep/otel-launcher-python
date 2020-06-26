@@ -66,7 +66,7 @@ def configure_opentelemetry(
 
     if token == "" and satellite_url == _DEFAULT_SATELLITE_URL:
         logger.error(
-            "invalid configuration: missing token, must be set to send data to %s. Set LS_ACCESS_TOKEN or configure access_token",
+            "invalid configuration: token missing, must be set to send data to %s. Set LS_ACCESS_TOKEN or configure access_token",
             _DEFAULT_SATELLITE_URL,
         )
         sys.exit(1)
