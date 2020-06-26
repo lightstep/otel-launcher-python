@@ -1,8 +1,10 @@
 ![build status](https://github.com/lightstep/opentelemetry-python/workflows/build/badge.svg) [![PyPI version](https://badge.fury.io/py/opentelemetry-lightstep.svg)](https://badge.fury.io/py/opentelemetry-lightstep)
 
-# Lightstep OpenTelemetry Python
+# Lightstep OpenTelemetry Configuration Layer for Python
 
-This is the Lightstep package for OpenTelemetry
+*NOTE: the code in this repo is currently in alpha and will likely change*
+
+This is the Lightstep package for configuring OpenTelemetry
 
 ### Install
 
