@@ -59,12 +59,14 @@ def configure_opentelemetry(
     debug: bool = _ENV_VAR_LS_DEBUG,
 ):
     if service_name is None:
-        logger.error("invalid configuration: missing service_name")
+        logger.error(
+            "invalid configuration: service name missing. Set LS_SERVICE_NAME or configure with service_name"
+        )
         sys.exit(1)
 
     if token == "" and satellite_url == _DEFAULT_SATELLITE_URL:
         logger.error(
-            "invalid configuration: missing token, must be set to send data to %s",
+            "invalid configuration: missing token, must be set to send data to %s. Set LS_ACCESS_TOKEN or configure access_token",
             _DEFAULT_SATELLITE_URL,
         )
         sys.exit(1)

@@ -4,3 +4,4 @@ opentelemetry-api>=0.9b0
 opentelemetry-sdk>=0.9b0
 opentelemetry-ext-otlp>=0.9b0
 opentelemetry-instrumentation>=0.9b0
+black~=19.10b0
