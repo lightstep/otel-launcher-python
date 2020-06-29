@@ -3,3 +3,5 @@
 **/.vscode/*
 **/opentelemetry_lightstep.egg-info/*
 .coverage
+__pycache__
+.nox
