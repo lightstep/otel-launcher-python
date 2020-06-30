@@ -19,13 +19,12 @@ import grpc
 
 from opentelemetry import trace
 from opentelemetry.ext.otlp.trace_exporter import OTLPSpanExporter
+from opentelemetry.lightstep.version import __version__
 from opentelemetry.sdk.trace import Resource, TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchExportSpanProcessor,
     ConsoleSpanExporter,
 )
-
-from .version import __version__
 
 logger = logging.getLogger(__name__)
 
