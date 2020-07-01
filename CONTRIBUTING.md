@@ -38,7 +38,7 @@ In the event of objections or disagreement, everyone involved should seek to arr
 To run the tests:
 
 ```
-make test
+nox -s test
 ```
 
 ### Style Guide
@@ -46,7 +46,7 @@ make test
 To check for linting errors:
 
 ```
-make lint
+nox -s lint
 ```
 
 ## Submitting a Pull Request
