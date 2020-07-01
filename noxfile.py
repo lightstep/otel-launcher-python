@@ -16,3 +16,17 @@ def lint(session):
     session.run("black", "src")
     session.run("isort", "--recursive", "src")
     session.run("pylint", "src")
+
+
+@session(python=["3.8"])
+def coverage(session):
+    session.install(".")
+    session.install("-r", "requirements-test.txt")
+    session.install("-r", "requirements-coverage.txt")
+    session.run(
+        "pytest",
+        "--cov",
+        "src/opentelemetry/lightstep",
+        "--cov-report",
+        "xml"
+    )

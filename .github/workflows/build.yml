@@ -32,5 +32,15 @@ jobs:
         pip install .
         pip install nox
 
-    - name: Run nox
-      run: nox
+    - name: Run tests
+      run: nox -s tests
+
+    - name: Run coverage
+      if: matrix.python-version == 3.8
+      run: |
+        nox -s coverage
+      bash <(curl -s https://codecov.io/bash)
+
+    - name: Run lint
+      if: matrix.python-version == 3.8
+      run: nox -s lint
