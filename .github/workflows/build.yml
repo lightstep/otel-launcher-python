@@ -39,7 +39,7 @@ jobs:
       if: matrix.python-version == 3.8
       run: |
         nox -s coverage
-      bash <(curl -s https://codecov.io/bash)
+        bash <(curl -s https://codecov.io/bash)
 
     - name: Run lint
       if: matrix.python-version == 3.8
