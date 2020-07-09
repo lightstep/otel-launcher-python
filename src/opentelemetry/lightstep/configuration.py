@@ -105,7 +105,7 @@ def configure_opentelemetry(
             used to sernd spans to the Lightstep satellite. Defaults to
             `"unknown"`.
         propagator (list): LS_PROPAGATOR, a list of propagators to be used.
-            Defaults to `["tracecontext", "b3"]`.
+            Defaults to `["b3"]`.
         resource_attributes (dict): LS_RESOURCE_ATTRIBUTES, a dictionary of
             key value pairs used to instantiate the resouce of the tracer
             provider. Defaults to
