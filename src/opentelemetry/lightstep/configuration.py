@@ -18,7 +18,6 @@ from typing import Optional
 from environs import Env
 from grpc import ssl_channel_credentials
 
-from opentelemetry.ext.datadog.propagator import DatadogFormat
 from opentelemetry.lightstep.tracer import LightstepOTLPSpanExporter
 from opentelemetry.lightstep.version import __version__
 from opentelemetry.propagators import set_global_httptextformat
@@ -30,9 +29,6 @@ from opentelemetry.sdk.trace.export import (
 )
 from opentelemetry.sdk.trace.propagation.b3_format import B3Format
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
-from opentelemetry.trace.propagation.tracecontexthttptextformat import (
-    TraceContextHTTPTextFormat,
-)
 
 _env = Env()
 
@@ -176,11 +172,7 @@ def configure_opentelemetry(
     set_global_httptextformat(
         CompositeHTTPPropagator(
             [
-                {
-                    "tracecontext": TraceContextHTTPTextFormat,
-                    "b3": B3Format,
-                    "datadog": DatadogFormat,
-                }[propagator]
+                {"b3": B3Format}[propagator]
                 for propagator in _LS_PROPAGATOR
             ]
         )
