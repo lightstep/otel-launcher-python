@@ -104,7 +104,7 @@ def configure_opentelemetry(
         service_version (str): LS_SERVICE_VERSION, the version of the service
             used to sernd spans to the Lightstep satellite. Defaults to
             `"unknown"`.
-        propagator (str): LS_PROPAGATOR, a list of propagators to be used.
+        propagator (list): LS_PROPAGATOR, a list of propagators to be used.
             Defaults to `["tracecontext", "b3"]`.
         resource_attributes (dict): LS_RESOURCE_ATTRIBUTES, a dictionary of
             key value pairs used to instantiate the resouce of the tracer
