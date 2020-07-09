@@ -15,5 +15,5 @@
 import typing
 
 
-def configure_metrics(config: typing.Dict):
+def configure_metrics(config: typing.Dict):  # pylint: disable=unused-argument
     pass

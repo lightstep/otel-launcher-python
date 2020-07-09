@@ -18,12 +18,11 @@ import sys
 
 import opentelemetry.sdk.trace.propagation.b3_format as b3_format
 from opentelemetry import propagators
+from opentelemetry.lightstep.tracer import configure_tracing
 from opentelemetry.propagators import composite
 from opentelemetry.trace.propagation.tracecontexthttptextformat import (
     TraceContextHTTPTextFormat,
 )
-
-from .tracer import configure_tracing
 
 _ENV_VAR_LS_ACCESS_TOKEN = os.getenv("LS_ACCESS_TOKEN", "")
 _ENV_VAR_LS_SERVICE_NAME = os.getenv("LS_SERVICE_NAME", None)
@@ -37,7 +36,7 @@ _ENV_VAR_LS_METRICS_URL = os.getenv("LS_METRICS_URL", _DEFAULT_METRICS_URL)
 _ENV_VAR_LS_SERVICE_VERSION = os.getenv("LS_SERVICE_VERSION", "unknown")
 _ENV_VAR_LS_PROPAGATOR = os.getenv("LS_PROPAGATOR", "b3,tracecontext")
 _ENV_VAR_LS_GLOBAL_TAGS = "LS_GLOBAL_TAGS"
-_ENV_VAR_LS_DEBUG = os.getenv("LS_DEBUG", False)
+_ENV_VAR_LS_DEBUG = bool(os.getenv("LS_DEBUG"))
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +84,6 @@ def configure_opentelemetry(
         logger.debug("configuration")
         logger.debug("-------------")
         for key, value in config.items():
-            logger.debug("{}: {}".format(key, value))
+            logger.debug("%s: %s", key, value)
     configure_tracing(config)
     configure_propagators()
