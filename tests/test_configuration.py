@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import patch, ANY
 from time import sleep
 from sys import version_info
 
@@ -71,3 +71,16 @@ class TestConfiguration(TestCase):
                 mock_otlp_span_exporter.assert_not_called()
         else:
             mock_otlp_span_exporter.assert_called()
+
+    @patch("opentelemetry.lightstep.configuration.LightstepOTLPSpanExporter")
+    def test_metadata(self, mock_otlp_span_exporter):
+
+        configure_opentelemetry(
+            service_name="service_123", access_token="a" * 104
+        )
+
+        mock_otlp_span_exporter.assert_called_with(
+            endpoint="ingest.lightstep.com:443",
+            credentials=ANY,
+            metadata=(("lightstep-access-token", "a" * 104),),
+        )
