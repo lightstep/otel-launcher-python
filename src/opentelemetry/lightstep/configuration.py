@@ -191,7 +191,7 @@ def configure_opentelemetry(
         set_tracer_provider(TracerProvider())
 
     if access_token != "":
-        metadata = ("lightstep-access-token", access_token)
+        metadata = (("lightstep-access-token", access_token),)
 
     # FIXME rename insecure to secure in order to avoid a negation
     if not insecure:
