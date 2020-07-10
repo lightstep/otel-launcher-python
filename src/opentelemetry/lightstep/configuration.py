@@ -146,8 +146,8 @@ def configure_opentelemetry(
         _logger.error(message)
         raise InvalidConfigurationError(message)
 
-    if satellite_url == _DEFAULT_LS_SATELLITE_URL:
-        if access_token is None:
+    if access_token is None:
+        if satellite_url == _DEFAULT_LS_SATELLITE_URL:
             message = (
                 "Invalid configuration: token missing. "
                 "Must be set to send data to {}. "
@@ -157,13 +157,13 @@ def configure_opentelemetry(
             _logger.error(message)
             raise InvalidConfigurationError(message)
 
-        if not _validate_token(access_token):
-            message = (
-                "Invalid configuration: invalid token. "
-                "Token must be a 104 character long string."
-            )
-            _logger.error(message)
-            raise InvalidConfigurationError(message)
+    if not _validate_token(access_token):
+        message = (
+            "Invalid configuration: invalid token. "
+            "Token must be a 32, 84 or 104 character long string."
+        )
+        _logger.error(message)
+        raise InvalidConfigurationError(message)
 
     _logger.debug("configuring propagation")
 
@@ -171,10 +171,7 @@ def configure_opentelemetry(
     # classes
     set_global_httptextformat(
         CompositeHTTPPropagator(
-            [
-                {"b3": B3Format}[propagator]
-                for propagator in _LS_PROPAGATOR
-            ]
+            [{"b3": B3Format}[propagator] for propagator in _LS_PROPAGATOR]
         )
     )
 
@@ -221,7 +218,7 @@ def configure_opentelemetry(
 
 
 def _validate_token(token: str):
-    return len(token) == 104
+    return len(token) in [32, 84, 104]
 
 
 def _validate_service_name(service_name: Optional[str]):
