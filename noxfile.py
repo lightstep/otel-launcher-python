@@ -1,11 +1,15 @@
 from nox import session
 
 
-@session(python=["3.5", "3.6", "3.7", "3.8"])
+@session(python=["3.5", "3.6", "3.7", "3.8"], reuse_venv=True)
 def test(session):
     session.install(".")
     session.install("-r", "requirements-test.txt")
-    session.run("pytest", "tests")
+
+    if session.posargs is None:
+        session.run("pytest", "tests")
+    else:
+        session.run("pytest", *session.posargs)
 
 
 @session(python=["3.8"])
