@@ -32,17 +32,25 @@ from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 
 _env = Env()
 
-_DEFAULT_LS_SATELLITE_URL = "ingest.lightstep.com:443"
-_DEFAULT_LS_METRICS_URL = "ingest.lightstep.com:443/metrics"
+_DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT = "ingest.lightstep.com:443"
+_DEFAULT_OTEL_EXPORTER_OTLP_METRIC_ENDPOINT = (
+    "ingest.lightstep.com:443/metrics"
+)
 
 _LS_ACCESS_TOKEN = _env.str("LS_ACCESS_TOKEN", None)
-_LS_SATELLITE_URL = _env.str("LS_SATELLITE_URL", _DEFAULT_LS_SATELLITE_URL)
-_LS_METRICS_URL = _env.str("LS_METRICS_URL", _DEFAULT_LS_METRICS_URL)
+_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT = _env.str(
+    "OTEL_EXPORTER_OTLP_SPAN_ENDPOINT",
+    _DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT,
+)
+_OTEL_EXPORTER_OTLP_METRIC_ENDPOINT = _env.str(
+    "OTEL_EXPORTER_OTLP_METRIC_ENDPOINT",
+    _DEFAULT_OTEL_EXPORTER_OTLP_METRIC_ENDPOINT,
+)
 _LS_SERVICE_NAME = _env.str("LS_SERVICE_NAME", None)
 _LS_SERVICE_VERSION = _env.str("LS_SERVICE_VERSION", "unknown")
-_LS_PROPAGATOR = _env.list("LS_PROPAGATOR", ["b3"])
-_LS_RESOURCE_ATTRIBUTES = _env.dict(
-    "LS_RESOURCE_ATTRIBUTES",
+_OTEL_PROPAGATORS = _env.list("OTEL_PROPAGATORS", ["b3"])
+_OTEL_RESOURCE_LABELS = _env.dict(
+    "OTEL_RESOURCE_LABELS",
     {
         "service.name": _LS_SERVICE_NAME,
         "service.version": _LS_SERVICE_VERSION,
@@ -50,8 +58,13 @@ _LS_RESOURCE_ATTRIBUTES = _env.dict(
         "telemetry.sdk.version": __version__,
     },
 )
-_LS_DEBUG = _env.bool("LS_DEBUG", False)
-_LS_INSECURE = _env.bool("LS_INSECURE", False)
+_OTEL_LOG_LEVEL = _env.int("OTEL_LOG_LEVEL", DEBUG)
+_OTEL_EXPORTER_OTLP_SPAN_INSECURE = _env.bool(
+    "OTEL_EXPORTER_OTLP_SPAN_INSECURE", False
+)
+_OTEL_EXPORTER_OTLP_METRIC_INSECURE = _env.bool(
+    "OTEL_EXPORTER_OTLP_METRIC_INSECURE", False
+)
 
 _logger = getLogger(__name__)
 
@@ -64,14 +77,17 @@ class InvalidConfigurationError(Exception):
 
 def configure_opentelemetry(
     access_token: str = _LS_ACCESS_TOKEN,
-    satellite_url: str = _LS_SATELLITE_URL,
-    metrics_url: str = _LS_METRICS_URL,
+    satellite_url: str = _OTEL_EXPORTER_OTLP_SPAN_ENDPOINT,
+    metrics_url: str = _OTEL_EXPORTER_OTLP_METRIC_ENDPOINT,
     service_name: str = _LS_SERVICE_NAME,
     service_version: str = _LS_SERVICE_VERSION,
-    propagator: list = _LS_PROPAGATOR,
-    resource_attributes: str = _LS_RESOURCE_ATTRIBUTES,
-    debug: bool = _LS_DEBUG,
-    insecure: bool = _LS_INSECURE,
+    propagator: list = _OTEL_PROPAGATORS,
+    resource_attributes: str = _OTEL_RESOURCE_LABELS,
+    log_level: int = _OTEL_LOG_LEVEL,
+    span_exporter_endpoint_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
+    metric_exporter_endpoint_insecure: bool = (
+        _OTEL_EXPORTER_OTLP_METRIC_INSECURE
+    ),
 ):
     """
     Configures OpenTelemetry with Lightstep environment variables
@@ -88,10 +104,10 @@ def configure_opentelemetry(
         access_token (str): LS_ACCESS_TOKEN, the access token used to
             authenticate with the Lightstep satellite. This configuration value
             is mandatory.
-        satellite_url (str): LS_SATELLITE_URL, the URL of the Lightstep
+        satellite_url (str): OTEL_EXPORTER_OTLP_SPAN_ENDPOINT, the URL of the Lightstep
             satellite where the spans are to be exported. Defaults to
             `ingest.lightstep.com:443`.
-        metrics_url (str): LS_METRICS_URL, the URL of the metrics collector
+        metrics_url (str): OTEL_EXPORTER_OTLP_METRIC_ENDPOINT, the URL of the metrics collector
             where the metrics are to be exported. Defaults to
             `ingest.lightstep.com:443/metrics`.
         service_name (str): LS_SERVICE_NAME, the name of the service that is
@@ -100,9 +116,9 @@ def configure_opentelemetry(
         service_version (str): LS_SERVICE_VERSION, the version of the service
             used to sernd spans to the Lightstep satellite. Defaults to
             `"unknown"`.
-        propagator (list): LS_PROPAGATOR, a list of propagators to be used.
+        propagator (list): OTEL_PROPAGATORS, a list of propagators to be used.
             Defaults to `["b3"]`.
-        resource_attributes (dict): LS_RESOURCE_ATTRIBUTES, a dictionary of
+        resource_attributes (dict): OTEL_RESOURCE_LABELS, a dictionary of
             key value pairs used to instantiate the resouce of the tracer
             provider. Defaults to
             `{
@@ -111,15 +127,20 @@ def configure_opentelemetry(
                 "telemetry.sdk.language": "python",
                 "telemetry.sdk.version": "0.9b0",
             }`
-        debug (bool): LS_DEBUG, a boolean value that indicates if debug
+        log_level (int): OTEL_LOG_LEVEL, a boolean value that indicates the log
+            level. Defaults to `logging.DEBUG`.
             information is to be printed. Defaults to `False`.
-        insecure (bool): LS_INSECURE, a boolean value that indicates if an
-            insecure channel is to be used to communicate with the satellite.
+        span_exporter_endpoint_insecure (bool):
+            OTEL_EXPORTER_OTLP_SPAN_INSECURE, a boolean value that indicates if
+            an insecure channel is to be used to send spans to the satellite.
             Defaults to `False`.
+        metric_exporter_endpoint_insecure (bool):
+            OTEL_EXPORTER_OTLP_METRIC_INSECURE, a boolean value that indicates
+            if an insecure channel is to be used to send spans to the
+            satellite. Defaults to `False`.
     """
 
-    if debug:
-        basicConfig(level=DEBUG)
+    basicConfig(level=log_level)
 
     _logger.debug("configuration")
 
@@ -131,8 +152,9 @@ def configure_opentelemetry(
         "service_version": service_version,
         "propagator": propagator,
         "resource_attributes": resource_attributes,
-        "debug": debug,
-        "insecure": insecure,
+        "log_level": log_level,
+        "span_exporter_endpoint_insecure": span_exporter_endpoint_insecure,
+        "metric_exporter_endpoint_insecure": metric_exporter_endpoint_insecure,
     }.items():
         _logger.debug("%s: %s", key, value)
 
@@ -147,13 +169,13 @@ def configure_opentelemetry(
         raise InvalidConfigurationError(message)
 
     if access_token is None:
-        if satellite_url == _DEFAULT_LS_SATELLITE_URL:
+        if satellite_url == _DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT:
             message = (
                 "Invalid configuration: token missing. "
                 "Must be set to send data to {}. "
                 "Set environment variable LS_ACCESS_TOKEN or call"
                 "configure_opentelemetry with access_token defined"
-            ).format(_LS_SATELLITE_URL)
+            ).format(_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT)
             _logger.error(message)
             raise InvalidConfigurationError(message)
 
@@ -171,7 +193,7 @@ def configure_opentelemetry(
     # classes
     set_global_httptextformat(
         CompositeHTTPPropagator(
-            [{"b3": B3Format}[propagator] for propagator in _LS_PROPAGATOR]
+            [{"b3": B3Format}[propagator] for propagator in _OTEL_PROPAGATORS]
         )
     )
 
@@ -190,12 +212,11 @@ def configure_opentelemetry(
     if access_token != "":
         metadata = (("lightstep-access-token", access_token),)
 
-    # FIXME rename insecure to secure in order to avoid a negation
-    if not insecure:
-        credentials = ssl_channel_credentials()
+    credentials = None
 
-    else:
-        credentials = None
+    # FIXME rename insecure to secure in order to avoid a negation
+    if not span_exporter_endpoint_insecure:
+        credentials = ssl_channel_credentials()
 
     # FIXME Do the same for metrics when the OTLPMetricsExporter is in
     # OpenTelemetry.
@@ -211,7 +232,7 @@ def configure_opentelemetry(
 
     get_tracer_provider().resource = Resource(resource_attributes)
 
-    if debug:
+    if log_level == DEBUG:
         get_tracer_provider().add_span_processor(
             BatchExportSpanProcessor(ConsoleSpanExporter())
         )
