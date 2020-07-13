@@ -77,12 +77,12 @@ class InvalidConfigurationError(Exception):
 
 def configure_opentelemetry(
     access_token: str = _LS_ACCESS_TOKEN,
-    satellite_url: str = _OTEL_EXPORTER_OTLP_SPAN_ENDPOINT,
-    metrics_url: str = _OTEL_EXPORTER_OTLP_METRIC_ENDPOINT,
+    span_endpoint: str = _OTEL_EXPORTER_OTLP_SPAN_ENDPOINT,
+    metric_endpoint: str = _OTEL_EXPORTER_OTLP_METRIC_ENDPOINT,
     service_name: str = _LS_SERVICE_NAME,
     service_version: str = _LS_SERVICE_VERSION,
     propagator: list = _OTEL_PROPAGATORS,
-    resource_attributes: str = _OTEL_RESOURCE_LABELS,
+    resource_labels: str = _OTEL_RESOURCE_LABELS,
     log_level: int = _OTEL_LOG_LEVEL,
     span_exporter_endpoint_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
     metric_exporter_endpoint_insecure: bool = (
@@ -104,10 +104,10 @@ def configure_opentelemetry(
         access_token (str): LS_ACCESS_TOKEN, the access token used to
             authenticate with the Lightstep satellite. This configuration value
             is mandatory.
-        satellite_url (str): OTEL_EXPORTER_OTLP_SPAN_ENDPOINT, the URL of the Lightstep
+        span_endpoint (str): OTEL_EXPORTER_OTLP_SPAN_ENDPOINT, the URL of the Lightstep
             satellite where the spans are to be exported. Defaults to
             `ingest.lightstep.com:443`.
-        metrics_url (str): OTEL_EXPORTER_OTLP_METRIC_ENDPOINT, the URL of the metrics collector
+        metric_endpoint (str): OTEL_EXPORTER_OTLP_METRIC_ENDPOINT, the URL of the metrics collector
             where the metrics are to be exported. Defaults to
             `ingest.lightstep.com:443/metrics`.
         service_name (str): LS_SERVICE_NAME, the name of the service that is
@@ -118,7 +118,7 @@ def configure_opentelemetry(
             `"unknown"`.
         propagator (list): OTEL_PROPAGATORS, a list of propagators to be used.
             Defaults to `["b3"]`.
-        resource_attributes (dict): OTEL_RESOURCE_LABELS, a dictionary of
+        resource_labels (dict): OTEL_RESOURCE_LABELS, a dictionary of
             key value pairs used to instantiate the resouce of the tracer
             provider. Defaults to
             `{
@@ -146,12 +146,12 @@ def configure_opentelemetry(
 
     for key, value in {
         "access_token": access_token,
-        "satellite_url": satellite_url,
-        "metrics_url": metrics_url,
+        "span_endpoint": span_endpoint,
+        "metric_endpoint": metric_endpoint,
         "service_name": service_name,
         "service_version": service_version,
         "propagator": propagator,
-        "resource_attributes": resource_attributes,
+        "resource_labels": resource_labels,
         "log_level": log_level,
         "span_exporter_endpoint_insecure": span_exporter_endpoint_insecure,
         "metric_exporter_endpoint_insecure": metric_exporter_endpoint_insecure,
@@ -169,7 +169,7 @@ def configure_opentelemetry(
         raise InvalidConfigurationError(message)
 
     if access_token is None:
-        if satellite_url == _DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT:
+        if span_endpoint == _DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT:
             message = (
                 "Invalid configuration: token missing. "
                 "Must be set to send data to {}. "
@@ -212,25 +212,24 @@ def configure_opentelemetry(
     if access_token != "":
         metadata = (("lightstep-access-token", access_token),)
 
-    credentials = None
+    credentials = ssl_channel_credentials()
 
-    # FIXME rename insecure to secure in order to avoid a negation
-    if not span_exporter_endpoint_insecure:
-        credentials = ssl_channel_credentials()
+    if span_exporter_endpoint_insecure:
+        credentials = None
 
     # FIXME Do the same for metrics when the OTLPMetricsExporter is in
     # OpenTelemetry.
     get_tracer_provider().add_span_processor(
         BatchExportSpanProcessor(
             LightstepOTLPSpanExporter(
-                endpoint=satellite_url,
+                endpoint=span_endpoint,
                 credentials=credentials,
                 metadata=metadata,
             )
         )
     )
 
-    get_tracer_provider().resource = Resource(resource_attributes)
+    get_tracer_provider().resource = Resource(resource_labels)
 
     if log_level == DEBUG:
         get_tracer_provider().add_span_processor(
