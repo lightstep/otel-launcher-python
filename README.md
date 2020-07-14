@@ -36,7 +36,7 @@ with tracer.start_as_current_span("foo") as span:
 Additional tracer options
 
 ```python
-tracer = configure_opentelemetry(
+configure_opentelemetry(
     service_name="service-123",
     service_version="1.2.3",
     token="my-token",
