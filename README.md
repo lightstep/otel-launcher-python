@@ -1,4 +1,4 @@
-![build status](https://github.com/lightstep/opentelemetry-python/workflows/build/badge.svg) [![PyPI version](https://badge.fury.io/py/opentelemetry-lightstep.svg)](https://badge.fury.io/py/opentelemetry-lightstep)
+![build status](https://github.com/lightstep/otel-python/workflows/build/badge.svg) [![PyPI version](https://badge.fury.io/py/opentelemetry-lightstep.svg)](https://badge.fury.io/py/opentelemetry-lightstep)
 
 # Lightstep OpenTelemetry Configuration Layer for Python
 
