@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from logging import DEBUG, basicConfig, getLogger
+from logging import DEBUG, ERROR, basicConfig, getLogger
 from typing import Optional
 
 from environs import Env
@@ -58,7 +58,7 @@ _OTEL_RESOURCE_LABELS = _env.dict(
         "telemetry.sdk.version": __version__,
     },
 )
-_OTEL_LOG_LEVEL = _env.int("OTEL_LOG_LEVEL", DEBUG)
+_OTEL_LOG_LEVEL = _env.int("OTEL_LOG_LEVEL", ERROR)
 _OTEL_EXPORTER_OTLP_SPAN_INSECURE = _env.bool(
     "OTEL_EXPORTER_OTLP_SPAN_INSECURE", False
 )
@@ -127,9 +127,8 @@ def configure_opentelemetry(
                 "telemetry.sdk.language": "python",
                 "telemetry.sdk.version": "0.9b0",
             }`
-        log_level (int): OTEL_LOG_LEVEL, a boolean value that indicates the log
-            level. Defaults to `logging.DEBUG`.
-            information is to be printed. Defaults to `False`.
+        log_level (int): OTEL_LOG_LEVEL, an int value that indicates the log
+            level. Defaults to `logging.ERROR`.
         span_exporter_endpoint_insecure (bool):
             OTEL_EXPORTER_OTLP_SPAN_INSECURE, a boolean value that indicates if
             an insecure channel is to be used to send spans to the satellite.
