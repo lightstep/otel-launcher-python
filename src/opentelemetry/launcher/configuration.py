@@ -18,8 +18,8 @@ from typing import Optional
 from environs import Env
 from grpc import ssl_channel_credentials
 
-from opentelemetry.lightstep.tracer import LightstepOTLPSpanExporter
-from opentelemetry.lightstep.version import __version__
+from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
+from opentelemetry.launcher.version import __version__
 from opentelemetry.propagators import set_global_httptextformat
 from opentelemetry.propagators.composite import CompositeHTTPPropagator
 from opentelemetry.sdk.trace import Resource, TracerProvider

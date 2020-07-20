@@ -1,15 +1,15 @@
-![build status](https://github.com/lightstep/otel-python/workflows/Python%20package/badge.svg) [![PyPI version](https://badge.fury.io/py/opentelemetry-lightstep.svg)](https://badge.fury.io/py/opentelemetry-lightstep)
+![build status](https://github.com/lightstep/otel-launcher-python/workflows/Python%20package/badge.svg) [![PyPI version](https://badge.fury.io/py/opentelemetry-launcher.svg)](https://badge.fury.io/py/opentelemetry-launcher)
 
-# Lightstep OpenTelemetry Configuration Layer for Python
+# Launcher, an OpenTelemetry Configuration Layer for Python 🚀
 
 *NOTE: the code in this repo is currently in alpha and will likely change*
 
-This is the Lightstep package for configuring OpenTelemetry
+This is the launcher package for configuring OpenTelemetry
 
 ### Install
 
 ```bash
-pip install opentelemetry-lightstep
+pip install opentelemetry-launcher
 ```
 
 ### Configure
@@ -17,7 +17,7 @@ pip install opentelemetry-lightstep
 Minimal setup
 
 ```python
-from opentelemetry.lightstep import configure_opentelemetry
+from opentelemetry.launcher import configure_opentelemetry
 
 configure_opentelemetry(
     service_name="service-123",

@@ -1,6 +1,6 @@
 from client import App
 from opentelemetry import trace
-from opentelemetry.lightstep import configure_opentelemetry
+from opentelemetry.launcher import configure_opentelemetry
 
 configure_opentelemetry(
     service_name="service-123",
