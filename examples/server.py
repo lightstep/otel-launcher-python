@@ -1,19 +1,26 @@
 #!/usr/bin/env python3
-
-import http.server as SimpleHTTPServer
 import logging
-import socketserver as SocketServer
+
+from flask import Flask
+from opentelemetry.launcher import configure_opentelemetry
+from opentelemetry.ext.flask import FlaskInstrumentor
+
 
 PORT = 8000
+configure_opentelemetry(
+    service_name="server-456",
+    service_version="4.5.6",
+    log_level=logging.DEBUG,  # optional
+)
+
+app = Flask(__name__)
+FlaskInstrumentor().instrument_app(app)
 
 
-class GetHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
-    def do_GET(self):
-        logging.error(self.headers)
-        SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
+@app.route("/hello")
+def hello():
+    return "hello"
 
 
-Handler = GetHandler
-httpd = SocketServer.TCPServer(("", PORT), Handler)
-
-httpd.serve_forever()
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=PORT)
