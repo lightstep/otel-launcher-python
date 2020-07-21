@@ -17,7 +17,7 @@ from unittest.mock import patch, ANY
 from time import sleep
 from sys import version_info
 
-from opentelemetry.lightstep.configuration import (
+from opentelemetry.launcher.configuration import (
     configure_opentelemetry, InvalidConfigurationError
 )
 from opentelemetry import trace
@@ -45,10 +45,10 @@ class TestConfiguration(TestCase):
             super().__init__(*args, schedule_delay_millis=1, **kwargs)
 
     @patch(
-        "opentelemetry.lightstep.configuration.BatchExportSpanProcessor",
+        "opentelemetry.launcher.configuration.BatchExportSpanProcessor",
         new=MockBatchExportSpanProcessor
     )
-    @patch("opentelemetry.lightstep.tracer.LightstepOTLPSpanExporter.export")
+    @patch("opentelemetry.launcher.tracer.LightstepOTLPSpanExporter.export")
     def test_only_service_name_and_token(self, mock_otlp_span_exporter):
 
         configure_opentelemetry(
@@ -72,7 +72,7 @@ class TestConfiguration(TestCase):
         else:
             mock_otlp_span_exporter.assert_called()
 
-    @patch("opentelemetry.lightstep.configuration.LightstepOTLPSpanExporter")
+    @patch("opentelemetry.launcher.configuration.LightstepOTLPSpanExporter")
     def test_metadata(self, mock_otlp_span_exporter):
 
         configure_opentelemetry(

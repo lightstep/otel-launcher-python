@@ -30,7 +30,7 @@ def coverage(session):
     session.run(
         "pytest",
         "--cov",
-        "src/opentelemetry/lightstep",
+        "src/opentelemetry/launcher",
         "--cov-report",
         "xml"
     )
