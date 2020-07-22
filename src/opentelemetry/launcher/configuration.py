@@ -180,10 +180,6 @@ def configure_opentelemetry(
     log_level = log_levels[log_level]
 
     basicConfig(level=log_level)
-    _logger = getLogger(__name__)
-
-    from ipdb import set_trace
-    set_trace()
 
     _logger.debug("configuration")
 
