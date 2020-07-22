@@ -117,3 +117,20 @@ class TestConfiguration(TestCase):
                     access_token="a" * 104,
                     log_level="WaRNiNG",
                 )
+
+    @patch("opentelemetry.launcher.configuration.Resource")
+    def test_resource_labels(self, mock_resource):
+        configure_opentelemetry(
+            service_name="service_name",
+            service_version="service_version",
+            access_token="a" * 104,
+        )
+
+        mock_resource.assert_called_with(
+            {
+                'telemetry.sdk.language': 'python',
+                'telemetry.sdk.version': '0.9b0',
+                'service.name': 'service_name',
+                'service.version': 'service_version'
+            }
+        )
