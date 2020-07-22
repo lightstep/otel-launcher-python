@@ -20,8 +20,8 @@ from logging import (
     NOTSET,
     WARNING,
     basicConfig,
-    getLogger,
     getLevelName,
+    getLogger,
 )
 from typing import Optional
 
@@ -41,6 +41,7 @@ from opentelemetry.sdk.trace.propagation.b3_format import B3Format
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 
 _env = Env()
+_logger = getLogger(__name__)
 
 _DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT = "ingest.lightstep.com:443"
 _DEFAULT_OTEL_EXPORTER_OTLP_METRIC_ENDPOINT = (
@@ -97,6 +98,7 @@ def configure_opentelemetry(
         _OTEL_EXPORTER_OTLP_METRIC_INSECURE
     ),
 ):
+    # pylint: disable=too-many-locals
     """
     Configures OpenTelemetry with Lightstep environment variables
 
@@ -175,10 +177,6 @@ def configure_opentelemetry(
     log_level = log_levels[log_level]
 
     basicConfig(level=log_level)
-    _logger = getLogger(__name__)
-
-    from ipdb import set_trace
-    set_trace()
 
     _logger.debug("configuration")
 

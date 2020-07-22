@@ -16,7 +16,7 @@ from unittest import TestCase
 from unittest.mock import patch, ANY
 from time import sleep
 from sys import version_info
-from logging import DEBUG
+from logging import DEBUG, WARNING
 
 from opentelemetry.launcher.configuration import (
     configure_opentelemetry, InvalidConfigurationError
@@ -88,9 +88,17 @@ class TestConfiguration(TestCase):
 
     def test_log_level(self):
 
-        with self.assertLogs("abc", level=DEBUG):
+        with self.assertLogs(level=DEBUG):
             configure_opentelemetry(
                 service_name="service_123",
                 access_token="a" * 104,
                 log_level="DEBUG",
             )
+
+        with self.assertRaises(AssertionError):
+            with self.assertLogs(level=WARNING):
+                configure_opentelemetry(
+                    service_name="service_123",
+                    access_token="a" * 104,
+                    log_level="WARNING",
+                )
