@@ -12,7 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from logging import DEBUG, ERROR, basicConfig, getLogger
+from logging import (
+    CRITICAL,
+    DEBUG,
+    ERROR,
+    INFO,
+    NOTSET,
+    WARNING,
+    basicConfig,
+    getLevelName,
+    getLogger,
+)
 from typing import Optional
 
 from environs import Env
@@ -31,6 +41,7 @@ from opentelemetry.sdk.trace.propagation.b3_format import B3Format
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 
 _env = Env()
+_logger = getLogger(__name__)
 
 _DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT = "ingest.lightstep.com:443"
 _DEFAULT_OTEL_EXPORTER_OTLP_METRIC_ENDPOINT = (
@@ -58,15 +69,13 @@ _OTEL_RESOURCE_LABELS = _env.dict(
         "telemetry.sdk.version": __version__,
     },
 )
-_OTEL_LOG_LEVEL = _env.int("OTEL_LOG_LEVEL", ERROR)
+_OTEL_LOG_LEVEL = _env.str("OTEL_LOG_LEVEL", "ERROR")
 _OTEL_EXPORTER_OTLP_SPAN_INSECURE = _env.bool(
     "OTEL_EXPORTER_OTLP_SPAN_INSECURE", False
 )
 _OTEL_EXPORTER_OTLP_METRIC_INSECURE = _env.bool(
     "OTEL_EXPORTER_OTLP_METRIC_INSECURE", False
 )
-
-_logger = getLogger(__name__)
 
 
 class InvalidConfigurationError(Exception):
@@ -83,12 +92,13 @@ def configure_opentelemetry(
     service_version: str = _LS_SERVICE_VERSION,
     propagator: list = _OTEL_PROPAGATORS,
     resource_labels: str = _OTEL_RESOURCE_LABELS,
-    log_level: int = _OTEL_LOG_LEVEL,
+    log_level: str = _OTEL_LOG_LEVEL,
     span_exporter_endpoint_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
     metric_exporter_endpoint_insecure: bool = (
         _OTEL_EXPORTER_OTLP_METRIC_INSECURE
     ),
 ):
+    # pylint: disable=too-many-locals
     """
     Configures OpenTelemetry with Lightstep environment variables
 
@@ -127,8 +137,16 @@ def configure_opentelemetry(
                 "telemetry.sdk.language": "python",
                 "telemetry.sdk.version": "0.9b0",
             }`
-        log_level (int): OTEL_LOG_LEVEL, an int value that indicates the log
-            level. Defaults to `logging.ERROR`.
+        log_level (str): OTEL_LOG_LEVEL, one of:
+
+            - `NOTSET` (0)
+            - `DEBUG` (10)
+            - `INFO` (20)
+            - `WARNING` (30)
+            - `ERROR` (40)
+            - `CRITICAL` (50)
+
+            Defaults to `logging.ERROR`.
         span_exporter_endpoint_insecure (bool):
             OTEL_EXPORTER_OTLP_SPAN_INSECURE, a boolean value that indicates if
             an insecure channel is to be used to send spans to the satellite.
@@ -138,6 +156,28 @@ def configure_opentelemetry(
             if an insecure channel is to be used to send spans to the
             satellite. Defaults to `False`.
     """
+
+    log_levels = {
+        "NOTSET": NOTSET,
+        "DEBUG": DEBUG,
+        "INFO": INFO,
+        "WARNING": WARNING,
+        "ERROR": ERROR,
+        "CRITICAL": CRITICAL,
+    }
+
+    log_level = log_level.upper()
+
+    if log_level not in log_levels.keys():
+
+        message = (
+            "Invalid configuration: invalid log_level value."
+            "It must be one of {}.".format(", ".join(log_levels.keys()))
+        )
+        _logger.error(message)
+        raise InvalidConfigurationError(message)
+
+    log_level = log_levels[log_level]
 
     basicConfig(level=log_level)
 
@@ -151,7 +191,7 @@ def configure_opentelemetry(
         "service_version": service_version,
         "propagator": propagator,
         "resource_labels": resource_labels,
-        "log_level": log_level,
+        "log_level": getLevelName(log_level),
         "span_exporter_endpoint_insecure": span_exporter_endpoint_insecure,
         "metric_exporter_endpoint_insecure": metric_exporter_endpoint_insecure,
     }.items():
@@ -230,7 +270,7 @@ def configure_opentelemetry(
 
     get_tracer_provider().resource = Resource(resource_labels)
 
-    if log_level == DEBUG:
+    if log_level >= DEBUG:
         get_tracer_provider().add_span_processor(
             BatchExportSpanProcessor(ConsoleSpanExporter())
         )
