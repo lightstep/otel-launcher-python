@@ -102,3 +102,18 @@ class TestConfiguration(TestCase):
                     access_token="a" * 104,
                     log_level="WARNING",
                 )
+
+        with self.assertLogs(level=DEBUG):
+            configure_opentelemetry(
+                service_name="service_123",
+                access_token="a" * 104,
+                log_level="DeBuG",
+            )
+
+        with self.assertRaises(AssertionError):
+            with self.assertLogs(level=WARNING):
+                configure_opentelemetry(
+                    service_name="service_123",
+                    access_token="a" * 104,
+                    log_level="WaRNiNG",
+                )
