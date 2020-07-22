@@ -23,7 +23,6 @@ from logging import (
     getLevelName,
     getLogger,
 )
-from re import match
 from typing import Optional
 
 from environs import Env
@@ -167,7 +166,9 @@ def configure_opentelemetry(
         "CRITICAL": CRITICAL,
     }
 
-    if match(r"(?i){}".format("|".join(log_levels.keys())), log_level) is None:
+    log_level = log_level.upper()
+
+    if log_level not in log_levels.keys():
 
         message = (
             "Invalid configuration: invalid log_level value."
@@ -176,7 +177,7 @@ def configure_opentelemetry(
         _logger.error(message)
         raise InvalidConfigurationError(message)
 
-    log_level = log_levels[log_level.upper()]
+    log_level = log_levels[log_level]
 
     basicConfig(level=log_level)
 
