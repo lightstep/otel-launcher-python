@@ -177,7 +177,7 @@ def configure_opentelemetry(
         _logger.error(message)
         raise InvalidConfigurationError(message)
 
-    log_level = log_levels[log_level]
+    log_level = log_levels[log_level.upper()]
 
     basicConfig(level=log_level)
 
