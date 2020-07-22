@@ -63,8 +63,6 @@ _OTEL_PROPAGATORS = _env.list("OTEL_PROPAGATORS", ["b3"])
 _OTEL_RESOURCE_LABELS = _env.dict(
     "OTEL_RESOURCE_LABELS",
     {
-        "service.name": _LS_SERVICE_NAME,
-        "service.version": _LS_SERVICE_VERSION,
         "telemetry.sdk.language": "python",
         "telemetry.sdk.version": __version__,
     },
@@ -183,6 +181,19 @@ def configure_opentelemetry(
 
     _logger.debug("configuration")
 
+    if not _validate_service_name(service_name):
+
+        message = (
+            "Invalid configuration: service name missing. "
+            "Set environment variable LS_SERVICE_NAME or call "
+            "configure_opentelemetry with service_name defined"
+        )
+        _logger.error(message)
+        raise InvalidConfigurationError(message)
+
+    resource_labels["service.name"] = service_name
+    resource_labels["service.version"] = service_version
+
     for key, value in {
         "access_token": access_token,
         "span_endpoint": span_endpoint,
@@ -196,16 +207,6 @@ def configure_opentelemetry(
         "metric_exporter_endpoint_insecure": metric_exporter_endpoint_insecure,
     }.items():
         _logger.debug("%s: %s", key, value)
-
-    if not _validate_service_name(service_name):
-
-        message = (
-            "Invalid configuration: service name missing. "
-            "Set environment variable LS_SERVICE_NAME or call "
-            "configure_opentelemetry with service_name defined"
-        )
-        _logger.error(message)
-        raise InvalidConfigurationError(message)
 
     if access_token is None:
         if span_endpoint == _DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT:
