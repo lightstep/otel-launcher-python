@@ -84,17 +84,15 @@ class InvalidConfigurationError(Exception):
 
 def configure_opentelemetry(
     access_token: str = _LS_ACCESS_TOKEN,
-    span_endpoint: str = _OTEL_EXPORTER_OTLP_SPAN_ENDPOINT,
-    metric_endpoint: str = _OTEL_EXPORTER_OTLP_METRIC_ENDPOINT,
+    span_exporter_endpoint: str = _OTEL_EXPORTER_OTLP_SPAN_ENDPOINT,
+    metric_exporter_endpoint: str = _OTEL_EXPORTER_OTLP_METRIC_ENDPOINT,
     service_name: str = _LS_SERVICE_NAME,
     service_version: str = _LS_SERVICE_VERSION,
     propagator: list = _OTEL_PROPAGATORS,
     resource_labels: str = _OTEL_RESOURCE_LABELS,
     log_level: str = _OTEL_LOG_LEVEL,
-    span_exporter_endpoint_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
-    metric_exporter_endpoint_insecure: bool = (
-        _OTEL_EXPORTER_OTLP_METRIC_INSECURE
-    ),
+    span_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
+    metric_exporter_insecure: bool = (_OTEL_EXPORTER_OTLP_METRIC_INSECURE),
 ):
     # pylint: disable=too-many-locals
     """
@@ -112,10 +110,10 @@ def configure_opentelemetry(
         access_token (str): LS_ACCESS_TOKEN, the access token used to
             authenticate with the Lightstep satellite. This configuration value
             is mandatory.
-        span_endpoint (str): OTEL_EXPORTER_OTLP_SPAN_ENDPOINT, the URL of the Lightstep
+        span_exporter_endpoint (str): OTEL_EXPORTER_OTLP_SPAN_ENDPOINT, the URL of the Lightstep
             satellite where the spans are to be exported. Defaults to
             `ingest.lightstep.com:443`.
-        metric_endpoint (str): OTEL_EXPORTER_OTLP_METRIC_ENDPOINT, the URL of the metrics collector
+        metric_exporter_endpoint (str): OTEL_EXPORTER_OTLP_METRIC_ENDPOINT, the URL of the metrics collector
             where the metrics are to be exported. Defaults to
             `ingest.lightstep.com:443/metrics`.
         service_name (str): LS_SERVICE_NAME, the name of the service that is
@@ -145,11 +143,11 @@ def configure_opentelemetry(
             - `CRITICAL` (50)
 
             Defaults to `logging.ERROR`.
-        span_exporter_endpoint_insecure (bool):
+        span_exporter_insecure (bool):
             OTEL_EXPORTER_OTLP_SPAN_INSECURE, a boolean value that indicates if
             an insecure channel is to be used to send spans to the satellite.
             Defaults to `False`.
-        metric_exporter_endpoint_insecure (bool):
+        metric_exporter_insecure (bool):
             OTEL_EXPORTER_OTLP_METRIC_INSECURE, a boolean value that indicates
             if an insecure channel is to be used to send spans to the
             satellite. Defaults to `False`.
@@ -196,20 +194,20 @@ def configure_opentelemetry(
 
     for key, value in {
         "access_token": access_token,
-        "span_endpoint": span_endpoint,
-        "metric_endpoint": metric_endpoint,
+        "span_exporter_endpoint": span_exporter_endpoint,
+        "metric_exporter_endpoint": metric_exporter_endpoint,
         "service_name": service_name,
         "service_version": service_version,
         "propagator": propagator,
         "resource_labels": resource_labels,
         "log_level": getLevelName(log_level),
-        "span_exporter_endpoint_insecure": span_exporter_endpoint_insecure,
-        "metric_exporter_endpoint_insecure": metric_exporter_endpoint_insecure,
+        "span_exporter_insecure": span_exporter_insecure,
+        "metric_exporter_insecure": metric_exporter_insecure,
     }.items():
         _logger.debug("%s: %s", key, value)
 
     if access_token is None:
-        if span_endpoint == _DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT:
+        if span_exporter_endpoint == _DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT:
             message = (
                 "Invalid configuration: token missing. "
                 "Must be set to send data to {}. "
@@ -254,7 +252,7 @@ def configure_opentelemetry(
 
     credentials = ssl_channel_credentials()
 
-    if span_exporter_endpoint_insecure:
+    if span_exporter_insecure:
         credentials = None
 
     # FIXME Do the same for metrics when the OTLPMetricsExporter is in
@@ -262,7 +260,7 @@ def configure_opentelemetry(
     get_tracer_provider().add_span_processor(
         BatchExportSpanProcessor(
             LightstepOTLPSpanExporter(
-                endpoint=span_endpoint,
+                endpoint=span_exporter_endpoint,
                 credentials=credentials,
                 metadata=metadata,
             )
