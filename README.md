@@ -21,8 +21,9 @@ from opentelemetry.launcher import configure_opentelemetry
 
 configure_opentelemetry(
     service_name="service-123",
-    token="my-token",  # optional
+    access_token="my-token",  # optional
 )
+
 tracer = trace.get_tracer(__name__)
 
 with tracer.start_as_current_span("foo") as span:
@@ -39,10 +40,12 @@ Additional tracer options
 configure_opentelemetry(
     service_name="service-123",
     service_version="1.2.3",
-    token="my-token",
-    satellite_url="ingest.lightstep.com:443",
-    metrics_url="ingest.lightstep.com:443/metrics",
-    debug=False,
+    access_token="my-token",
+    span_endpoint="ingest.lightstep.com:443",
+    metric_endpoint="ingest.lightstep.com:443/metrics",
+    log_level=debug,
+    span_exporter_endpoint_insecure=False,
+    metric_exporter_endpoint_insecure=False,
 )
 
 ```
@@ -51,9 +54,14 @@ configure_opentelemetry(
 
 |Config|Env Variable|Required|Default|
 |------|------------|--------|-------|
-|service_name|LS_SERVICE_NAME|y|-|
-|service_version|LS_SERVICE_VERSION|n|unknown|
-|token|LS_ACCESS_TOKEN|n|-|
-|satellite_url|LS_SATELLITE_URL|n|ingest.lightstep.com:443|
-|metrics_url|LS_METRICS_URL|n|ingest.lightstep.com:443/metrics|
-|debug|LS_DEBUG|n|False|
+|service_name                     |LS_SERVICE_NAME|y|-|
+|service_version                  |LS_SERVICE_VERSION|n|unknown|
+|access_token                     |LS_ACCESS_TOKEN|n|-|
+|span_endpoint                    |OTEL_EXPORTER_OTLP_SPAN_ENDPOINT|n|ingest.lightstep.com:443|
+|span_exporter_endpoint_insecure  |OTEL_EXPORTER_OTLP_SPAN_INSECURE|n|False|
+|metric_endpoint                  |OTEL_EXPORTER_OTLP_METRIC_ENDPOINT|n|ingest.lightstep.com:443/metrics|
+|metric_exporter_endpoint_insecure|OTEL_EXPORTER_OTLP_METRIC_INSECURE|n|False|
+|propagator                       |OTEL_PROPAGATORS|n|b3|
+|resource_labels                  |OTEL_RESOURCE_LABELS|n|-|
+|log_level                        |OTEL_LOG_LEVEL|n|error|
+
