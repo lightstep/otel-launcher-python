@@ -1,6 +1,6 @@
 # Releasing
 
-Once all the changes for a release have been merged to master, ensure the following:
+Once all the changes for a release have been merged to main, ensure the following:
 
 - [ ] version has been updated in `src/opentelemetry/launcher/version.py`
 - [ ] tests are passing
@@ -8,7 +8,7 @@ Once all the changes for a release have been merged to master, ensure the follow
 
 # Publishing
 
-Publishing to [pypi](https://pypi.org/project/opentelemetry-launcher/) is automated via GitHub actions. Once a tag is pushed to the repo, a new GitHub Release is created and package is published  via the actions defined here: https://github.com/lightstep/otel-launcher-python/blob/master/.github/workflows/release.yml
+Publishing to [pypi](https://pypi.org/project/opentelemetry-launcher/) is automated via GitHub actions. Once a tag is pushed to the repo, a new GitHub Release is created and package is published  via the actions defined here: https://github.com/lightstep/otel-launcher-python/blob/main/.github/workflows/release.yml
 
 ```
 $ git clone git@github.com:lightstep/otel-launcher-python && cd otel-launcher-python
