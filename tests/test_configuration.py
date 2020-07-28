@@ -22,6 +22,7 @@ from opentelemetry.launcher.configuration import (
     configure_opentelemetry,
     InvalidConfigurationError,
 )
+from opentelemetry.launcher.version import __version__
 from opentelemetry import trace
 from opentelemetry.propagators import get_global_httptextformat
 from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
@@ -129,7 +130,7 @@ class TestConfiguration(TestCase):
         mock_resource.assert_called_with(
             {
                 "telemetry.sdk.language": "python",
-                "telemetry.sdk.version": "0.9b0",
+                "telemetry.sdk.version": __version__,
                 "service.name": "service_name",
                 "service.version": "service_version",
             }
