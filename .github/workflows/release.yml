@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@master
+        uses: actions/checkout@main
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
@@ -46,6 +46,6 @@ jobs:
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
         mkdir -p ./dist
-	python setup.py sdist
-	python setup.py bdist_wheel
-	twine upload dist/*
+        python setup.py sdist
+        python setup.py bdist_wheel
+        twine upload dist/*
