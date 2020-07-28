@@ -19,9 +19,11 @@ from sys import version_info
 from logging import DEBUG, WARNING
 
 from opentelemetry.launcher.configuration import (
-    configure_opentelemetry, InvalidConfigurationError
+    configure_opentelemetry,
+    InvalidConfigurationError,
 )
 from opentelemetry import trace
+from opentelemetry.propagators import get_global_httptextformat
 from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
 
 
@@ -47,7 +49,7 @@ class TestConfiguration(TestCase):
 
     @patch(
         "opentelemetry.launcher.configuration.BatchExportSpanProcessor",
-        new=MockBatchExportSpanProcessor
+        new=MockBatchExportSpanProcessor,
     )
     @patch("opentelemetry.launcher.tracer.LightstepOTLPSpanExporter.export")
     def test_only_service_name_and_token(self, mock_otlp_span_exporter):
@@ -95,13 +97,12 @@ class TestConfiguration(TestCase):
                 log_level="DEBUG",
             )
 
-        with self.assertRaises(AssertionError):
-            with self.assertLogs(level=WARNING):
-                configure_opentelemetry(
-                    service_name="service_123",
-                    access_token="a" * 104,
-                    log_level="WARNING",
-                )
+        with self.assertLogs(level=WARNING):
+            configure_opentelemetry(
+                service_name="service_123",
+                access_token="a" * 104,
+                log_level="WARNING",
+            )
 
         with self.assertLogs(level=DEBUG):
             configure_opentelemetry(
@@ -110,13 +111,12 @@ class TestConfiguration(TestCase):
                 log_level="DeBuG",
             )
 
-        with self.assertRaises(AssertionError):
-            with self.assertLogs(level=WARNING):
-                configure_opentelemetry(
-                    service_name="service_123",
-                    access_token="a" * 104,
-                    log_level="WaRNiNG",
-                )
+        with self.assertLogs(level=WARNING):
+            configure_opentelemetry(
+                service_name="service_123",
+                access_token="a" * 104,
+                log_level="WaRNiNG",
+            )
 
     @patch("opentelemetry.launcher.configuration.Resource")
     def test_resource_labels(self, mock_resource):
@@ -128,9 +128,24 @@ class TestConfiguration(TestCase):
 
         mock_resource.assert_called_with(
             {
-                'telemetry.sdk.language': 'python',
-                'telemetry.sdk.version': '0.9b0',
-                'service.name': 'service_name',
-                'service.version': 'service_version'
+                "telemetry.sdk.language": "python",
+                "telemetry.sdk.version": "0.9b0",
+                "service.name": "service_name",
+                "service.version": "service_version",
             }
         )
+
+    def test_propagation(self):
+        configure_opentelemetry(
+            service_name="service_name",
+            service_version="service_version",
+            access_token="a" * 104,
+        )
+        with trace.get_tracer(__name__).start_as_current_span("test") as span:
+            prop = get_global_httptextformat()
+            carrier = {}
+            prop.inject(dict.__setitem__, carrier)
+            self.assertEqual(
+                format(span.get_context().trace_id, "032x"),
+                carrier.get("x-b3-traceid"),
+            )
