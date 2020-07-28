@@ -231,7 +231,10 @@ def configure_opentelemetry(
     # classes
     set_global_httptextformat(
         CompositeHTTPPropagator(
-            [{"b3": B3Format}[propagator] for propagator in _OTEL_PROPAGATORS]
+            [
+                {"b3": B3Format()}[propagator]
+                for propagator in _OTEL_PROPAGATORS
+            ]
         )
     )
 
