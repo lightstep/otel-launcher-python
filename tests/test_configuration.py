@@ -20,6 +20,7 @@ from logging import DEBUG, WARNING
 
 from opentelemetry.launcher.configuration import (
     configure_opentelemetry,
+    _logger,
     InvalidConfigurationError,
 )
 from opentelemetry.launcher.version import __version__
@@ -34,13 +35,13 @@ class TestConfiguration(TestCase):
 
     def test_no_service_name(self):
         with self.assertRaises(InvalidConfigurationError):
-            with self.assertLogs(level="ERROR") as log:
+            with self.assertLogs(logger=_logger, level="ERROR") as log:
                 configure_opentelemetry()
                 self.assertIn("service name missing", log.output[0])
 
     def test_no_token(self):
         with self.assertRaises(InvalidConfigurationError):
-            with self.assertLogs(level="ERROR") as log:
+            with self.assertLogs(logger=_logger, level="ERROR") as log:
                 configure_opentelemetry(service_name="service-123")
                 self.assertIn("token missing", log.output[0])
 
@@ -91,33 +92,35 @@ class TestConfiguration(TestCase):
 
     def test_log_level(self):
 
-        with self.assertLogs(level=DEBUG):
+        with self.assertLogs(logger=_logger, level=DEBUG):
             configure_opentelemetry(
                 service_name="service_123",
                 access_token="a" * 104,
                 log_level="DEBUG",
             )
 
-        with self.assertLogs(level=WARNING):
-            configure_opentelemetry(
-                service_name="service_123",
-                access_token="a" * 104,
-                log_level="WARNING",
-            )
+        with self.assertRaises(AssertionError):
+            with self.assertLogs(logger=_logger, level=WARNING):
+                configure_opentelemetry(
+                    service_name="service_123",
+                    access_token="a" * 104,
+                    log_level="WARNING",
+                )
 
-        with self.assertLogs(level=DEBUG):
+        with self.assertLogs(logger=_logger, level=DEBUG):
             configure_opentelemetry(
                 service_name="service_123",
                 access_token="a" * 104,
                 log_level="DeBuG",
             )
 
-        with self.assertLogs(level=WARNING):
-            configure_opentelemetry(
-                service_name="service_123",
-                access_token="a" * 104,
-                log_level="WaRNiNG",
-            )
+        with self.assertRaises(AssertionError):
+            with self.assertLogs(logger=_logger, level=WARNING):
+                configure_opentelemetry(
+                    service_name="service_123",
+                    access_token="a" * 104,
+                    log_level="WaRNiNG",
+                )
 
     @patch("opentelemetry.launcher.configuration.Resource")
     def test_resource_labels(self, mock_resource):
