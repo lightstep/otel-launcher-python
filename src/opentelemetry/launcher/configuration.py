@@ -292,5 +292,5 @@ class LightstepLauncherInstrumentor(BaseInstrumentor):
     def _instrument(self):
         configure_opentelemetry()
 
-    def _unisnstrument(self):
+    def _uninstrument(self):
         pass
