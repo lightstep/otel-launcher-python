@@ -288,9 +288,8 @@ def _validate_service_name(service_name: Optional[str]):
 
 
 class LightstepLauncherInstrumentor(BaseInstrumentor):
-
-    def _instrument(self):
+    def _instrument(self, **kwargs):
         configure_opentelemetry()
 
-    def _uninstrument(self):
+    def _uninstrument(self, **kwargs):
         pass
