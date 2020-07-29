@@ -28,6 +28,7 @@ from typing import Optional
 from environs import Env
 from grpc import ssl_channel_credentials
 
+from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.launcher.version import __version__
 from opentelemetry.propagators import set_global_httptextformat
@@ -284,3 +285,12 @@ def _validate_token(token: str):
 
 def _validate_service_name(service_name: Optional[str]):
     return service_name is not None
+
+
+class LightstepLauncherInstrumentor(BaseInstrumentor):
+
+    def _instrument(self):
+        configure_opentelemetry()
+
+    def _unisnstrument(self):
+        pass
