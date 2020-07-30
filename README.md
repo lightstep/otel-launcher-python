@@ -11,6 +11,13 @@ Launcher is a configuration layer that chooses default values for configuration 
 ### Bug Bash instructions
 
 ```bash
+cd ~
+mkdir auto_instrumentation
+virtualenv auto_instrumentation
+source auto_instrumentation/bin/activate
+```
+
+```bash
 git clone git@github.com:open-telemetry/opentelemetry-python.git
 cd opentelemetry-python
 git checkout issue_958
@@ -29,6 +36,48 @@ index 780a92b6..c993b2fe 100644
 
 -__version__ = "0.12.dev0"
 +__version__ = "0.11.b0"
+```
+
+```bash
+cd ~
+cd opentelemetry-python/opentelemetry-api
+pip install -e .
+pip install opentelemetry-sdk
+pip install opentelemetry-instrumentation
+pip install opentelemetry-ext-flask
+pip install requests
+```
+
+Install the Python launcher:
+
+```bash
+cd ~
+git clone git@github.com:lightstep/otel-launcher-python.git
+cd otel-launcher-python
+pip install -e .
+```
+
+Configure the environment variables:
+
+```bash
+export LS_SERVICE_NAME=bug_bash_testing
+export LS_ACCESS_TOKEN=<the access token>
+```
+
+Run the server:
+
+```bash
+cd ~
+cd open-telemetry/opentelemetry-python/docs/examples/auto-instrumentation
+opentelemetry-instrument python server_uninstrumented.py
+```
+
+Run the client in a separate console:
+
+```bash
+cd ~
+cd open-telemetry/opentelemetry-python/docs/examples/auto-instrumentation
+python client.py testing
 ```
 
 ### Getting started
