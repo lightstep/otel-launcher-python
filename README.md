@@ -8,6 +8,29 @@
 
 Launcher is a configuration layer that chooses default values for configuration options that many OpenTelemetry users want. It provides a single function in each language to simplify discovery of the options and components available to users. The goal of Launcher is to help users that aren't familiar with OpenTelemetry quickly ramp up on what they need to get going and instrument.
 
+### Bug Bash instructions
+
+```bash
+git clone git@github.com:open-telemetry/opentelemetry-python.git
+cd opentelemetry-python
+git checkout issue_958
+```
+
+Edit `opentelemetry-api/src/opentelemetry/version.py`:
+
+```diff
+diff --git a/opentelemetry-api/src/opentelemetry/version.py b/opentelemetry-api/src/opentelemetry/version.py
+index 780a92b6..c993b2fe 100644
+--- a/opentelemetry-api/src/opentelemetry/version.py
++++ b/opentelemetry-api/src/opentelemetry/version.py
+@@ -12,4 +12,4 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+
+-__version__ = "0.12.dev0"
++__version__ = "0.11.b0"
+```
+
 ### Getting started
 
 ```bash
