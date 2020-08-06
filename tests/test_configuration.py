@@ -123,7 +123,7 @@ class TestConfiguration(TestCase):
                 )
 
     @patch("opentelemetry.launcher.configuration.Resource")
-    def test_resource_labels(self, mock_resource):
+    def test_resource_attributes(self, mock_resource):
         configure_opentelemetry(
             service_name="service_name",
             service_version="service_version",

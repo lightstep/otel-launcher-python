@@ -61,8 +61,8 @@ _OTEL_EXPORTER_OTLP_METRIC_ENDPOINT = _env.str(
 _LS_SERVICE_NAME = _env.str("LS_SERVICE_NAME", None)
 _LS_SERVICE_VERSION = _env.str("LS_SERVICE_VERSION", "unknown")
 _OTEL_PROPAGATORS = _env.list("OTEL_PROPAGATORS", ["b3"])
-_OTEL_RESOURCE_LABELS = _env.dict(
-    "OTEL_RESOURCE_LABELS",
+_OTEL_RESOURCE_ATTRIBUTES = _env.dict(
+    "OTEL_RESOURCE_ATTRIBUTES",
     {
         "telemetry.sdk.language": "python",
         "telemetry.sdk.version": __version__,
@@ -90,7 +90,7 @@ def configure_opentelemetry(
     service_name: str = _LS_SERVICE_NAME,
     service_version: str = _LS_SERVICE_VERSION,
     propagator: list = _OTEL_PROPAGATORS,
-    resource_labels: str = _OTEL_RESOURCE_LABELS,
+    resource_attributes: str = _OTEL_RESOURCE_ATTRIBUTES,
     log_level: str = _OTEL_LOG_LEVEL,
     span_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
     metric_exporter_insecure: bool = (_OTEL_EXPORTER_OTLP_METRIC_INSECURE),
@@ -125,7 +125,7 @@ def configure_opentelemetry(
             `"unknown"`.
         propagator (list): OTEL_PROPAGATORS, a list of propagators to be used.
             Defaults to `["b3"]`.
-        resource_labels (dict): OTEL_RESOURCE_LABELS, a dictionary of
+        resource_attributes (dict): OTEL_RESOURCE_ATTRIBUTES, a dictionary of
             key value pairs used to instantiate the resouce of the tracer
             provider. Defaults to
             `{
@@ -190,8 +190,8 @@ def configure_opentelemetry(
         _logger.error(message)
         raise InvalidConfigurationError(message)
 
-    resource_labels["service.name"] = service_name
-    resource_labels["service.version"] = service_version
+    resource_attributes["service.name"] = service_name
+    resource_attributes["service.version"] = service_version
 
     for key, value in {
         "access_token": access_token,
@@ -200,7 +200,7 @@ def configure_opentelemetry(
         "service_name": service_name,
         "service_version": service_version,
         "propagator": propagator,
-        "resource_labels": resource_labels,
+        "resource_attributes": resource_attributes,
         "log_level": getLevelName(log_level),
         "span_exporter_insecure": span_exporter_insecure,
         "metric_exporter_insecure": metric_exporter_insecure,
@@ -271,7 +271,7 @@ def configure_opentelemetry(
         )
     )
 
-    get_tracer_provider().resource = Resource(resource_labels)
+    get_tracer_provider().resource = Resource(resource_attributes)
 
     if log_level >= DEBUG:
         get_tracer_provider().add_span_processor(

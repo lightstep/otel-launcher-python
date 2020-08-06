@@ -64,7 +64,7 @@ configure_opentelemetry(
 |metric_exporter_endpoint                  |OTEL_EXPORTER_OTLP_METRIC_ENDPOINT|n|ingest.lightstep.com:443/metrics|
 |metric_exporter_insecure|OTEL_EXPORTER_OTLP_METRIC_INSECURE|n|False|
 |propagator                       |OTEL_PROPAGATORS|n|b3|
-|resource_labels                  |OTEL_RESOURCE_LABELS|n|-|
+|resource_attributes                  |OTEL_RESOURCE_ATTRIBUTES|n|-|
 |log_level                        |OTEL_LOG_LEVEL|n|error|
 
 ### Principles behind Launcher
