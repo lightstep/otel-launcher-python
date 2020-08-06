@@ -132,7 +132,7 @@ def configure_opentelemetry(
                 "service.name": _LS_SERVICE_NAME,
                 "service.version": _LS_SERVICE_VERSION,
                 "telemetry.sdk.language": "python",
-                "telemetry.sdk.version": "0.9b0",
+                "telemetry.sdk.version": "0.11b0",
             }`
         log_level (str): OTEL_LOG_LEVEL, one of:
 
