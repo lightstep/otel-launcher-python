@@ -52,6 +52,59 @@ configure_opentelemetry(
 
 ```
 
+### Usage with Auto Instrumentation
+
+OpenTelemetry Python includes a command that allows the user to automatically instrument
+certain third party libraries. Here is an example that shows how to use this launcher
+with auto instrumentation.
+
+First, create a new virtual environment:
+
+```bash
+cd ~
+mkdir auto_instrumentation
+virtualenv auto_instrumentation
+source auto_instrumentation/bin/activate
+pip install opentelemetry-api
+pip install opentelemetry-sdk
+pip install opentelemetry-instrumentation
+pip install opentelemetry-ext-flask
+pip install requests
+pip install opentelemetry-launcher
+```
+
+Once that is done, clone the `opentelemetry-python` repo to get the example code:
+
+```bash
+git clone git@github.com:open-telemetry/opentelemetry-python.git
+cd opentelemetry-python
+```
+
+Set the environment variables:
+
+```bash
+export LS_SERVICE_NAME=auto-instrumentation-testing
+export LS_ACCESS_TOKEN=<the access token>
+```
+
+Run the server:
+
+```bash
+cd ~
+cd open-telemetry/opentelemetry-python/docs/examples/auto-instrumentation
+opentelemetry-instrument python server_uninstrumented.py
+```
+
+Run the client in a separate console:
+
+```bash
+cd ~
+cd open-telemetry/opentelemetry-python/docs/examples/auto-instrumentation
+python client.py testing
+```
+
+This should produce spans that can be captured in the Lightstep Explorer Web UI.
+
 ### Configuration Options
 
 |Config|Env Variable|Required|Default|
