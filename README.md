@@ -66,8 +66,8 @@ mkdir auto_instrumentation
 virtualenv auto_instrumentation
 source auto_instrumentation/bin/activate
 pip install opentelemetry-launcher
-pip install opentelemetry-ext-flask
 pip install requests
+opentelemtry-bootstrap -a install
 ```
 
 Once that is done, clone the `opentelemetry-python` repo to get the example code:
