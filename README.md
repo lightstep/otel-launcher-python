@@ -65,12 +65,9 @@ cd ~
 mkdir auto_instrumentation
 virtualenv auto_instrumentation
 source auto_instrumentation/bin/activate
-pip install opentelemetry-api
-pip install opentelemetry-sdk
-pip install opentelemetry-instrumentation
+pip install opentelemetry-launcher
 pip install opentelemetry-ext-flask
 pip install requests
-pip install opentelemetry-launcher
 ```
 
 Once that is done, clone the `opentelemetry-python` repo to get the example code:
