@@ -67,6 +67,7 @@ virtualenv auto_instrumentation
 source auto_instrumentation/bin/activate
 pip install opentelemetry-launcher
 pip install requests
+pip install flask
 opentelemetry-bootstrap -a install
 ```
 
