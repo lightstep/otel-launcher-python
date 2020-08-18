@@ -1,4 +1,4 @@
-![build status](https://github.com/lightstep/otel-launcher-python/workflows/Python%20package/badge.svg) [![PyPI version](https://badge.fury.io/py/opentelemetry-launcher.svg)](https://badge.fury.io/py/opentelemetry-launcher)
+![build status](https://github.com/lightstep/otel-launcher-python/workflows/Python%20package/badge.svg) [![PyPI version](https://badge.fury.io/py/opentelemetry-launcher.svg)](https://badge.fury.io/py/opentelemetry-launcher) [![Downloads](https://pepy.tech/badge/opentelemetry-launcher)](https://pepy.tech/project/opentelemetry-launcher)
 
 # Launcher, an OpenTelemetry Configuration Layer 🚀
 
