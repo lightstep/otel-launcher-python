@@ -45,6 +45,13 @@ class TestConfiguration(TestCase):
                 configure_opentelemetry(service_name="service-123")
                 self.assertIn("token missing", log.output[0])
 
+    def test_no_token_other_endpoint(self):
+        # no exception is thrown
+        configure_opentelemetry(
+            service_name="service-123",
+            span_exporter_endpoint="localhost:1234",
+        )
+
     class MockBatchExportSpanProcessor(BatchExportSpanProcessor):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, schedule_delay_millis=1, **kwargs)

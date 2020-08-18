@@ -218,7 +218,7 @@ def configure_opentelemetry(
             _logger.error(message)
             raise InvalidConfigurationError(message)
 
-    if not _validate_token(access_token):
+    if access_token is not None and not _validate_token(access_token):
         message = (
             "Invalid configuration: invalid token. "
             "Token must be a 32, 84 or 104 character long string."
