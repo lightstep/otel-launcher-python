@@ -1,9 +1,9 @@
 import logging
 import requests
 
-from opentelemetry import trace
+from opentelemetry import correlationcontext, trace
 from opentelemetry.launcher import configure_opentelemetry
-from opentelemetry.ext.requests import RequestsInstrumentor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
 RequestsInstrumentor().instrument()
 
@@ -20,13 +20,14 @@ class App:
                 requests.get(url)
             except Exception as e:
                 span.set_attribute("error", "true")
-                span.record_error(e)
+                span.record_exception(e)
 
     def send_requests(self):
         self.get_current_span()
         with self._tracer.start_as_current_span("foo"):
             self.get_current_span()
             self.add_span_attribute()
+            self.set_correlation()
             with self._tracer.start_as_current_span("bar"):
                 self._request("http://localhost:8000/hello")
                 self._request("http://doesnotexist:8000")
@@ -42,11 +43,16 @@ class App:
         span = trace.get_current_span()
         print("current span: ", span)
 
+    # example of setting a correlation
+    def set_correlation(self):
+        ctx = correlationcontext.set_correlation("example", "value")
+        print("val: ", correlationcontext.get_correlation("example", ctx))
+
 
 configure_opentelemetry(
     service_name="service-123",
     service_version="1.2.3",  # optional
-    log_level=logging.DEBUG,  # optional
+    log_level="DEBUG",  # optional
 )
 
 app = App(trace.get_tracer(__name__))
