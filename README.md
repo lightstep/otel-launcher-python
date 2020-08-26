@@ -20,6 +20,7 @@ Minimal setup
 
 ```python
 from opentelemetry.launcher import configure_opentelemetry
+from opentelemetry import trace
 
 configure_opentelemetry(
     service_name="service-123",
@@ -88,16 +89,14 @@ export LS_ACCESS_TOKEN=<the access token>
 Run the server:
 
 ```bash
-cd ~
-cd open-telemetry/opentelemetry-python/docs/examples/auto-instrumentation
+cd docs/examples/auto-instrumentation
 opentelemetry-instrument python server_uninstrumented.py
 ```
 
 Run the client in a separate console:
 
 ```bash
-cd ~
-cd open-telemetry/opentelemetry-python/docs/examples/auto-instrumentation
+cd docs/examples/auto-instrumentation
 python client.py testing
 ```
 
