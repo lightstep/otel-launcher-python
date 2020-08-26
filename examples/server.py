@@ -3,14 +3,14 @@ import logging
 
 from flask import Flask
 from opentelemetry.launcher import configure_opentelemetry
-from opentelemetry.ext.flask import FlaskInstrumentor
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
 
 
 PORT = 8000
 configure_opentelemetry(
     service_name="server-456",
     service_version="4.5.6",
-    log_level=logging.DEBUG,  # optional
+    log_level="DEBUG",  # optional
 )
 
 app = Flask(__name__)
