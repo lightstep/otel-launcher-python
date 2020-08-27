@@ -289,7 +289,13 @@ def _validate_service_name(service_name: Optional[str]):
 
 class LightstepLauncherInstrumentor(BaseInstrumentor):
     def _instrument(self, **kwargs):
-        configure_opentelemetry()
+        try:
+            configure_opentelemetry()
+        except InvalidConfigurationError as err:
+            _logger.error(
+                "configure_opentelemetry() called via opentelemetry-instrument, all configuration must be set via environment variables"
+            )
+            raise err
 
     def _uninstrument(self, **kwargs):
         pass
