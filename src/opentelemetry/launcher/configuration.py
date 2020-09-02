@@ -94,6 +94,7 @@ def configure_opentelemetry(
     log_level: str = _OTEL_LOG_LEVEL,
     span_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
     metric_exporter_insecure: bool = (_OTEL_EXPORTER_OTLP_METRIC_INSECURE),
+    _auto_instrumented: bool = False,
 ):
     # pylint: disable=too-many-locals
     """
@@ -184,9 +185,13 @@ def configure_opentelemetry(
 
         message = (
             "Invalid configuration: service name missing. "
-            "Set environment variable LS_SERVICE_NAME or call "
-            "configure_opentelemetry with service_name defined"
+            "Set environment variable LS_SERVICE_NAME"
         )
+
+        if not _auto_instrumented:
+            message += (
+                " or call configure_opentelemetry with service_name defined"
+            )
         _logger.error(message)
         raise InvalidConfigurationError(message)
 
@@ -212,9 +217,10 @@ def configure_opentelemetry(
             message = (
                 "Invalid configuration: token missing. "
                 "Must be set to send data to {}. "
-                "Set environment variable LS_ACCESS_TOKEN or call"
-                "configure_opentelemetry with access_token defined"
+                "Set environment variable LS_ACCESS_TOKEN"
             ).format(_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT)
+            if not _auto_instrumented:
+                message += " or call configure_opentelemetry with access_token defined"
             _logger.error(message)
             raise InvalidConfigurationError(message)
 
@@ -289,7 +295,12 @@ def _validate_service_name(service_name: Optional[str]):
 
 class LightstepLauncherInstrumentor(BaseInstrumentor):
     def _instrument(self, **kwargs):
-        configure_opentelemetry()
+        try:
+            configure_opentelemetry(_auto_instrumented=True)
+        except InvalidConfigurationError:
+            _logger.exception(
+                "application instrumented via opentelemetry-instrument. all required configuration must be set via environment variables"
+            )
 
     def _uninstrument(self, **kwargs):
         pass
