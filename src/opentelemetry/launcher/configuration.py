@@ -38,7 +38,12 @@ from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.launcher.version import __version__
 from opentelemetry.propagators import set_global_textmap
+from opentelemetry.metrics import (
+    get_meter_provider,
+    set_meter_provider,
+)
 from opentelemetry.propagators.composite import CompositeHTTPPropagator
+from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.trace import Resource, TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchExportSpanProcessor,
@@ -274,7 +279,7 @@ def configure_opentelemetry(
 
     metadata = None
 
-    if _env.str("OPENTELEMETRY_PYTHON_TRACER_PROVIDER", None) is None:
+    if _env.str("OTEL_PYTHON_TRACER_PROVIDER", None) is None:
         # FIXME now that new values can be set in the global configuration
         # object, check for this object having a tracer_provider attribute, if
         # not, set it to "sdk_tracer_provider" instead of using
@@ -285,10 +290,10 @@ def configure_opentelemetry(
     if access_token != "":
         metadata = (("lightstep-access-token", access_token),)
 
-    credentials = ssl_channel_credentials()
-
     if span_exporter_insecure:
         credentials = None
+    else:
+        credentials = ssl_channel_credentials()
 
     # FIXME Do the same for metrics when the OTLPMetricsExporter is in
     # OpenTelemetry.
@@ -329,6 +334,35 @@ def configure_opentelemetry(
         get_tracer_provider().add_span_processor(
             BatchExportSpanProcessor(ConsoleSpanExporter())
         )
+
+    _logger.debug("configuring metrics")
+
+    if _env.str("OTEL_PYTHON_METER_PROVIDER", None) is None:
+        # FIXME now that new values can be set in the global configuration
+        # object, check for this object having a tracer_provider attribute, if
+        # not, set it to "sdk_tracer_provider" instead of using
+        # set_tracer_provider, this in order to avoid having more than one
+        # method of setting configuration.
+        set_meter_provider(MeterProvider())
+
+    if metric_exporter_insecure:
+        credentials = None
+    else:
+        credentials = ssl_channel_credentials()
+
+    """
+    get_meter_provider().start_pipeline(
+        get_meter(__name__),
+        LightstepOTLPMetricsExporter(
+            endpoint=metric_exporter_endpoint,
+            credentials=credentials,
+            metadata=metadata,
+        ),
+        5,
+    )
+    """
+
+    get_meter_provider().resource = Resource(resource_attributes)
 
 
 def _validate_token(token: str):

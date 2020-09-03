@@ -1,8 +1,33 @@
 from nox import session
 
 
+def install_opentelemetry_deps(session):
+    session.install(
+        "-egit+https://github.com/open-telemetry/opentelemetry-python.git"
+        "@dd47cd4f01e58d4d5451063442cbc73e6d61f518#egg=opentelemetry-api"
+        "&subdirectory=opentelemetry-api"
+    )
+    session.install(
+        "-egit+https://github.com/open-telemetry/opentelemetry-python.git"
+        "@dd47cd4f01e58d4d5451063442cbc73e6d61f518#egg=opentelemetry-sdk"
+        "&subdirectory=opentelemetry-sdk"
+    )
+    session.install(
+        "-egit+https://github.com/open-telemetry/opentelemetry-python.git"
+        "@dd47cd4f01e58d4d5451063442cbc73e6d61f518#egg=opentelemetry-proto"
+        "&subdirectory=opentelemetry-proto"
+    )
+    session.install(
+        "-egit+https://github.com/open-telemetry/opentelemetry-python.git"
+        "@dd47cd4f01e58d4d5451063442cbc73e6d61f518"
+        "#egg=opentelemetry-exporter-otlp"
+        "&subdirectory=exporter/opentelemetry-exporter-otlp"
+    )
+
+
 @session(python=["3.5", "3.6", "3.7", "3.8"], reuse_venv=True)
 def test(session):
+    install_opentelemetry_deps(session)
     session.install(".")
     session.install("-r", "requirements-test.txt")
 
@@ -14,6 +39,7 @@ def test(session):
 
 @session(python=["3.8"])
 def lint(session):
+    install_opentelemetry_deps(session)
     session.install(".")
     session.install("-r", "requirements-test.txt")
     session.install("-r", "requirements-lint.txt")
@@ -24,6 +50,7 @@ def lint(session):
 
 @session(python=["3.8"])
 def coverage(session):
+    install_opentelemetry_deps(session)
     session.install(".")
     session.install("-r", "requirements-test.txt")
     session.install("-r", "requirements-coverage.txt")
