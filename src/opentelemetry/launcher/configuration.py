@@ -51,6 +51,7 @@ from opentelemetry.sdk.trace.export import (
 )
 from opentelemetry.sdk.trace.propagation.b3_format import B3Format
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
+from opentelemetry.instrumentation.system_metrics import SystemMetrics
 
 _env = Env()
 _logger = getLogger(__name__)
@@ -108,7 +109,7 @@ def configure_opentelemetry(
     log_level: str = _OTEL_LOG_LEVEL,
     span_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
     metric_exporter_insecure: bool = (_OTEL_EXPORTER_OTLP_METRIC_INSECURE),
-    system_metrics_config = None,
+    system_metrics_config: dict = None,
     _auto_instrumented: bool = False,
 ):
     # pylint: disable=too-many-locals
