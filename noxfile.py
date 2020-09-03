@@ -3,36 +3,36 @@ from nox import session
 
 def install_opentelemetry_deps(session):
     session.install(
-        "-egit+https://github.com/open-telemetry/opentelemetry-python.git"
-        "@dd47cd4f01e58d4d5451063442cbc73e6d61f518#egg=opentelemetry-api"
+        "-egit+https://github.com/ocelotl/opentelemetry-python.git"
+        "@660ddb118790214e86fe93ed1e61e9eecb822715#egg=opentelemetry-api"
         "&subdirectory=opentelemetry-api"
     )
     session.install(
-        "-egit+https://github.com/open-telemetry/opentelemetry-python.git"
-        "@dd47cd4f01e58d4d5451063442cbc73e6d61f518#egg=opentelemetry-sdk"
+        "-egit+https://github.com/ocelotl/opentelemetry-python.git"
+        "@660ddb118790214e86fe93ed1e61e9eecb822715#egg=opentelemetry-sdk"
         "&subdirectory=opentelemetry-sdk"
     )
     session.install(
-        "-egit+https://github.com/open-telemetry/opentelemetry-python.git"
-        "@dd47cd4f01e58d4d5451063442cbc73e6d61f518#egg=opentelemetry-proto"
+        "-egit+https://github.com/ocelotl/opentelemetry-python.git"
+        "@660ddb118790214e86fe93ed1e61e9eecb822715#egg=opentelemetry-proto"
         "&subdirectory=opentelemetry-proto"
     )
     session.install(
-        "-egit+https://github.com/open-telemetry/opentelemetry-python.git"
-        "@dd47cd4f01e58d4d5451063442cbc73e6d61f518"
+        "-egit+https://github.com/ocelotl/opentelemetry-python.git"
+        "@660ddb118790214e86fe93ed1e61e9eecb822715"
         "#egg=opentelemetry-exporter-otlp"
         "&subdirectory=exporter/opentelemetry-exporter-otlp"
     )
     session.install(
-        "-egit+https://github.com/open-telemetry/opentelemetry-python.git"
-        "@dd47cd4f01e58d4d5451063442cbc73e6d61f518"
+        "-egit+https://github.com/ocelotl/opentelemetry-python.git"
+        "@660ddb118790214e86fe93ed1e61e9eecb822715"
         "#egg=opentelemetry-instrumentation-system-metrics"
         "&subdirectory=instrumentation/"
         "opentelemetry-instrumentation-system-metrics"
     )
 
 
-@session(python=["3.5", "3.6", "3.7", "3.8"], reuse_venv=True)
+@session(python=["3.5", "3.6", "3.7", "3.8"], reuse_venv=False)
 def test(session):
     install_opentelemetry_deps(session)
     session.install(".")
