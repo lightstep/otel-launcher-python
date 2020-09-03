@@ -108,6 +108,7 @@ def configure_opentelemetry(
     log_level: str = _OTEL_LOG_LEVEL,
     span_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
     metric_exporter_insecure: bool = (_OTEL_EXPORTER_OTLP_METRIC_INSECURE),
+    system_metrics_config = None,
     _auto_instrumented: bool = False,
 ):
     # pylint: disable=too-many-locals
@@ -166,6 +167,8 @@ def configure_opentelemetry(
             OTEL_EXPORTER_OTLP_METRIC_INSECURE, a boolean value that indicates
             if an insecure channel is to be used to send spans to the
             satellite. Defaults to `False`.
+        system_metrics_config (dict):
+            Configuration for the SystemMetrics instrumentation
     """
 
     log_levels = {
@@ -350,17 +353,19 @@ def configure_opentelemetry(
     else:
         credentials = ssl_channel_credentials()
 
-    """
+    lightstep_otlp_metrics_exporter = LightstepOTLPMetricsExporter(
+        endpoint=metric_exporter_endpoint,
+        credentials=credentials,
+        metadata=metadata,
+    )
+
+    SystemMetrics(lightstep_otlp_metrics_exporter, system_metrics_config)
+
     get_meter_provider().start_pipeline(
         get_meter(__name__),
-        LightstepOTLPMetricsExporter(
-            endpoint=metric_exporter_endpoint,
-            credentials=credentials,
-            metadata=metadata,
-        ),
+        lightstep_otlp_metrics_exporter,
         5,
     )
-    """
 
     get_meter_provider().resource = Resource(resource_attributes)
 
