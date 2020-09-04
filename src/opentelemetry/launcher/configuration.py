@@ -59,7 +59,7 @@ _OTEL_EXPORTER_OTLP_METRIC_ENDPOINT = _env.str(
     _DEFAULT_OTEL_EXPORTER_OTLP_METRIC_ENDPOINT,
 )
 _LS_SERVICE_NAME = _env.str("LS_SERVICE_NAME", None)
-_LS_SERVICE_VERSION = _env.str("LS_SERVICE_VERSION", "unknown")
+_LS_SERVICE_VERSION = _env.str("LS_SERVICE_VERSION", None)
 _OTEL_PROPAGATORS = _env.list("OTEL_PROPAGATORS", ["b3"])
 _OTEL_RESOURCE_ATTRIBUTES = _env.dict(
     "OTEL_RESOURCE_ATTRIBUTES",
@@ -196,20 +196,24 @@ def configure_opentelemetry(
         raise InvalidConfigurationError(message)
 
     resource_attributes["service.name"] = service_name
-    resource_attributes["service.version"] = service_version
 
-    for key, value in {
+    logged_attributes = {
         "access_token": access_token,
         "span_exporter_endpoint": span_exporter_endpoint,
         "metric_exporter_endpoint": metric_exporter_endpoint,
         "service_name": service_name,
-        "service_version": service_version,
         "propagator": propagator,
         "resource_attributes": resource_attributes,
         "log_level": getLevelName(log_level),
         "span_exporter_insecure": span_exporter_insecure,
         "metric_exporter_insecure": metric_exporter_insecure,
-    }.items():
+    }
+
+    if service_version is not None:
+        resource_attributes["service.version"] = service_version
+        logged_attributes["service_version"] = service_version
+
+    for key, value in logged_attributes.items():
         _logger.debug("%s: %s", key, value)
 
     if access_token is None:
