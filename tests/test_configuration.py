@@ -27,11 +27,20 @@ from opentelemetry.launcher.version import __version__
 from opentelemetry import trace
 from opentelemetry.propagators import get_global_httptextformat
 from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
+from opentelemetry.trace import get_tracer_provider, set_tracer_provider
+from opentelemetry.sdk.trace import TracerProvider
 
 
 class TestConfiguration(TestCase):
     def test_all_environment_variables_used(self):
         pass
+
+    def tearDown(self):
+        get_tracer_provider().shutdown()
+
+    @classmethod
+    def setUpClass(cls):
+        set_tracer_provider(TracerProvider())
 
     def test_no_service_name(self):
         with self.assertRaises(InvalidConfigurationError):
