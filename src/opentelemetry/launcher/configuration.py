@@ -279,25 +279,37 @@ def configure_opentelemetry(
         )
     )
 
-    _logger.debug("configuring tracing")
-
     metadata = None
-
-    if _env.str("OTEL_PYTHON_TRACER_PROVIDER", None) is None:
-        # FIXME now that new values can be set in the global configuration
-        # object, check for this object having a tracer_provider attribute, if
-        # not, set it to "sdk_tracer_provider" instead of using
-        # set_tracer_provider, this in order to avoid having more than one
-        # method of setting configuration.
-        set_tracer_provider(TracerProvider())
 
     if access_token != "":
         metadata = (("lightstep-access-token", access_token),)
 
-    if span_exporter_insecure:
-        credentials = None
-    else:
-        credentials = ssl_channel_credentials()
+    def common_configuration(
+        provider_setter, provider_class, environment_variable, insecure
+    ):
+        if _env.str(environment_variable, None) is None:
+            # FIXME now that new values can be set in the global configuration
+            # object, check for this object having a tracer_provider attribute,
+            # if not, set it to "sdk_tracer_provider" instead of using
+            # set_x_provider, this in order to avoid having more than one
+            # method of setting configuration.
+            provider_setter(provider_class())
+
+        if insecure:
+            credentials = None
+        else:
+            credentials = ssl_channel_credentials()
+
+        return credentials
+
+    _logger.debug("configuring tracing")
+
+    credentials = common_configuration(
+        set_tracer_provider,
+        TracerProvider,
+        "OTEL_PYTHON_TRACER_PROVIDER",
+        span_exporter_insecure,
+    )
 
     # FIXME Do the same for metrics when the OTLPMetricsExporter is in
     # OpenTelemetry.
@@ -341,18 +353,12 @@ def configure_opentelemetry(
 
     _logger.debug("configuring metrics")
 
-    if _env.str("OTEL_PYTHON_METER_PROVIDER", None) is None:
-        # FIXME now that new values can be set in the global configuration
-        # object, check for this object having a tracer_provider attribute, if
-        # not, set it to "sdk_tracer_provider" instead of using
-        # set_tracer_provider, this in order to avoid having more than one
-        # method of setting configuration.
-        set_meter_provider(MeterProvider())
-
-    if metric_exporter_insecure:
-        credentials = None
-    else:
-        credentials = ssl_channel_credentials()
+    credentials = common_configuration(
+        set_meter_provider,
+        MeterProvider,
+        "OTEL_PYTHON_METER_PROVIDER",
+        metric_exporter_insecure,
+    )
 
     lightstep_otlp_metrics_exporter = LightstepOTLPMetricsExporter(
         endpoint=metric_exporter_endpoint,
