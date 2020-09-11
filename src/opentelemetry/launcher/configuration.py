@@ -35,10 +35,12 @@ from opentelemetry.trace.propagation.tracecontext import (
     TraceContextTextMapPropagator,
 )
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
+from opentelemetry.launcher.metrics import LightstepOTLPMetricsExporter
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.launcher.version import __version__
 from opentelemetry.propagators import set_global_textmap
 from opentelemetry.metrics import (
+    get_meter,
     get_meter_provider,
     set_meter_provider,
 )

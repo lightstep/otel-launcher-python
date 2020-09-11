@@ -3,29 +3,29 @@ from nox import session
 
 def install_opentelemetry_deps(session):
     session.install(
-        "-egit+https://github.com/ocelotl/opentelemetry-python.git"
-        "@660ddb118790214e86fe93ed1e61e9eecb822715#egg=opentelemetry-api"
+        "-egit+https://github.com/open-telemetry/opentelemetry-python.git"
+        "@master#egg=opentelemetry-api"
         "&subdirectory=opentelemetry-api"
     )
     session.install(
-        "-egit+https://github.com/ocelotl/opentelemetry-python.git"
-        "@660ddb118790214e86fe93ed1e61e9eecb822715#egg=opentelemetry-sdk"
+        "-egit+https://github.com/open-telemetry/opentelemetry-python.git"
+        "@master#egg=opentelemetry-sdk"
         "&subdirectory=opentelemetry-sdk"
     )
     session.install(
-        "-egit+https://github.com/ocelotl/opentelemetry-python.git"
-        "@660ddb118790214e86fe93ed1e61e9eecb822715#egg=opentelemetry-proto"
+        "-egit+https://github.com/open-telemetry/opentelemetry-python.git"
+        "@master#egg=opentelemetry-proto"
         "&subdirectory=opentelemetry-proto"
     )
     session.install(
-        "-egit+https://github.com/ocelotl/opentelemetry-python.git"
-        "@660ddb118790214e86fe93ed1e61e9eecb822715"
+        "-egit+https://github.com/open-telemetry/opentelemetry-python.git"
+        "@master"
         "#egg=opentelemetry-exporter-otlp"
         "&subdirectory=exporter/opentelemetry-exporter-otlp"
     )
     session.install(
-        "-egit+https://github.com/ocelotl/opentelemetry-python.git"
-        "@660ddb118790214e86fe93ed1e61e9eecb822715"
+        "-egit+https://github.com/open-telemetry/opentelemetry-python.git"
+        "@master"
         "#egg=opentelemetry-instrumentation-system-metrics"
         "&subdirectory=instrumentation/"
         "opentelemetry-instrumentation-system-metrics"
