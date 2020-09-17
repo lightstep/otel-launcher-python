@@ -25,7 +25,7 @@ from opentelemetry.launcher.configuration import (
 )
 from opentelemetry.launcher.version import __version__
 from opentelemetry import trace
-from opentelemetry.propagators import get_global_httptextformat
+from opentelemetry.propagators import get_global_textmap
 from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 from opentelemetry.sdk.trace import TracerProvider
@@ -162,7 +162,7 @@ class TestConfiguration(TestCase):
             access_token="a" * 104,
         )
         with trace.get_tracer(__name__).start_as_current_span("test") as span:
-            prop = get_global_httptextformat()
+            prop = get_global_textmap()
             carrier = {}
             prop.inject(dict.__setitem__, carrier)
             self.assertEqual(

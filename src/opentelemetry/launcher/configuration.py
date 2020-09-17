@@ -31,7 +31,7 @@ from grpc import ssl_channel_credentials
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.launcher.version import __version__
-from opentelemetry.propagators import set_global_httptextformat
+from opentelemetry.propagators import set_global_textmap
 from opentelemetry.propagators.composite import CompositeHTTPPropagator
 from opentelemetry.sdk.trace import Resource, TracerProvider
 from opentelemetry.sdk.trace.export import (
@@ -236,7 +236,7 @@ def configure_opentelemetry(
 
     # FIXME use entry points (instead of a dictionary) to locate propagator
     # classes
-    set_global_httptextformat(
+    set_global_textmap(
         CompositeHTTPPropagator(
             [
                 {"b3": B3Format()}[propagator]
