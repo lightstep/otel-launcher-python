@@ -1,11 +1,22 @@
-import logging
 import requests
 
-from opentelemetry import correlationcontext, trace
+from opentelemetry import baggage, trace
 from opentelemetry.launcher import configure_opentelemetry
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
 RequestsInstrumentor().instrument()
+
+
+# example of getting the current span
+def get_current_span():
+    span = trace.get_current_span()
+    print("current span: ", span)
+
+
+# example of utilizing baggage
+def set_baggage():
+    ctx = baggage.set_baggage("example", "value")
+    print("val: ", baggage.get_baggage("example", ctx))
 
 
 class App:
@@ -23,11 +34,11 @@ class App:
                 span.record_exception(e)
 
     def send_requests(self):
-        self.get_current_span()
+        get_current_span()
         with self._tracer.start_as_current_span("foo"):
-            self.get_current_span()
+            get_current_span()
             self.add_span_attribute()
-            self.set_correlation()
+            set_baggage()
             with self._tracer.start_as_current_span("bar"):
                 self._request("http://localhost:8000/hello")
                 self._request("http://doesnotexist:8000")
@@ -37,16 +48,6 @@ class App:
     def add_span_attribute(self):
         with self._tracer.start_as_current_span("add-attribute") as span:
             span.set_attribute("attr1", "valu1")
-
-    # example of getting the current span
-    def get_current_span(self):
-        span = trace.get_current_span()
-        print("current span: ", span)
-
-    # example of setting a correlation
-    def set_correlation(self):
-        ctx = correlationcontext.set_correlation("example", "value")
-        print("val: ", correlationcontext.get_correlation("example", ctx))
 
 
 configure_opentelemetry(
