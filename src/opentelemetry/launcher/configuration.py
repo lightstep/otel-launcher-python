@@ -61,13 +61,11 @@ _OTEL_EXPORTER_OTLP_METRIC_ENDPOINT = _env.str(
 )
 _LS_SERVICE_NAME = _env.str("LS_SERVICE_NAME", None)
 _LS_SERVICE_VERSION = _env.str("LS_SERVICE_VERSION", None)
-_OTEL_PROPAGATORS = _env.list("OTEL_PROPAGATORS", ["b3"])
-_OTEL_RESOURCE_ATTRIBUTES = _env.dict(
+_OTEL_PROPAGATORS = _env.str("OTEL_PROPAGATORS", "b3")
+_OTEL_RESOURCE_ATTRIBUTES = _env.str(
     "OTEL_RESOURCE_ATTRIBUTES",
-    {
-        "telemetry.sdk.language": "python",
-        "telemetry.sdk.version": __version__,
-    },
+    "telemetry.sdk.language=python,"
+    "telemetry.sdk.version={}".format(__version__),
 )
 _OTEL_LOG_LEVEL = _env.str("OTEL_LOG_LEVEL", "ERROR")
 _OTEL_EXPORTER_OTLP_SPAN_INSECURE = _env.bool(
@@ -90,7 +88,7 @@ def configure_opentelemetry(
     metric_exporter_endpoint: str = _OTEL_EXPORTER_OTLP_METRIC_ENDPOINT,
     service_name: str = _LS_SERVICE_NAME,
     service_version: str = _LS_SERVICE_VERSION,
-    propagator: list = _OTEL_PROPAGATORS,
+    propagators: str = _OTEL_PROPAGATORS,
     resource_attributes: str = _OTEL_RESOURCE_ATTRIBUTES,
     log_level: str = _OTEL_LOG_LEVEL,
     span_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
@@ -123,19 +121,17 @@ def configure_opentelemetry(
             used along with the access token to send spans to the Lighstep
             satellite. This configuration value is mandatory.
         service_version (str): LS_SERVICE_VERSION, the version of the service
-            used to sernd spans to the Lightstep satellite. Defaults to
-            `"unknown"`.
-        propagator (list): OTEL_PROPAGATORS, a list of propagators to be used.
-            Defaults to `["b3"]`.
-        resource_attributes (dict): OTEL_RESOURCE_ATTRIBUTES, a dictionary of
+            used to sernd spans to the Lightstep satellite. Defaults to `None`.
+        propagators (str): OTEL_PROPAGATORS, a list of propagators to be used.
+            The list is specified as a comma-separated string of values, for
+            example: `a,b,c,d,e,f`. Defaults to `b3`.
+        resource_attributes (str): OTEL_RESOURCE_ATTRIBUTES, a dictionary of
             key value pairs used to instantiate the resouce of the tracer
-            provider. Defaults to
-            `{
-                "service.name": _LS_SERVICE_NAME,
-                "service.version": _LS_SERVICE_VERSION,
-                "telemetry.sdk.language": "python",
-                "telemetry.sdk.version": "0.11b0",
-            }`
+            provider. The dictionary is specified as a string of
+            comma-separated `key=value` pairs. For example: `a=1,b=2,c=3`.
+            Defaults to
+            `telemetry.sdk.language=python,telemetry.sdk.version=X` where `X`
+            is the version of this package.
         log_level (str): OTEL_LOG_LEVEL, one of:
 
             - `NOTSET` (0)
@@ -164,6 +160,15 @@ def configure_opentelemetry(
         "ERROR": ERROR,
         "CRITICAL": CRITICAL,
     }
+
+    # No environment variable is passed here as the first argument since what
+    # is intended here is just to parse the value of the already obtained value
+    # of the environment variables OTEL_PROPAGATORS and
+    # OTEL_RESOURCE_ATTRIBUTES into a list and a dictionary. This is not done
+    # at the attribute declaration to avoid having mutable objects as default
+    # arguments.
+    propagators = _env.list("", propagators)
+    resource_attributes = _env.dict("", resource_attributes)
 
     log_level = log_level.upper()
 
@@ -203,7 +208,7 @@ def configure_opentelemetry(
         "span_exporter_endpoint": span_exporter_endpoint,
         "metric_exporter_endpoint": metric_exporter_endpoint,
         "service_name": service_name,
-        "propagator": propagator,
+        "propagators": propagators,
         "resource_attributes": resource_attributes,
         "log_level": getLevelName(log_level),
         "span_exporter_insecure": span_exporter_insecure,
@@ -243,10 +248,7 @@ def configure_opentelemetry(
     # classes
     set_global_textmap(
         CompositeHTTPPropagator(
-            [
-                {"b3": B3Format()}[propagator]
-                for propagator in _OTEL_PROPAGATORS
-            ]
+            [{"b3": B3Format()}[propagator] for propagator in propagators]
         )
     )
 
