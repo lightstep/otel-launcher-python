@@ -155,6 +155,21 @@ class TestConfiguration(TestCase):
             }
         )
 
+    @patch("opentelemetry.launcher.configuration.Resource")
+    def test_service_version(self, mock_resource):
+        configure_opentelemetry(
+            service_name="service_name",
+            access_token="a" * 104,
+        )
+
+        mock_resource.assert_called_with(
+            {
+                "telemetry.sdk.language": "python",
+                "telemetry.sdk.version": __version__,
+                "service.name": "service_name",
+            }
+        )
+
     def test_propagation(self):
         configure_opentelemetry(
             service_name="service_name",
