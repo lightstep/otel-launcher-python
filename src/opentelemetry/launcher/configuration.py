@@ -24,6 +24,7 @@ from logging import (
     getLevelName,
     getLogger,
 )
+from socket import gethostname
 from typing import Optional
 
 from environs import Env
@@ -76,6 +77,11 @@ _OTEL_EXPORTER_OTLP_METRIC_INSECURE = _env.bool(
     "OTEL_EXPORTER_OTLP_METRIC_INSECURE", False
 )
 
+# FIXME Find a way to "import" this value from:
+# https://github.com/open-telemetry/opentelemetry-collector/blob/master/translator/conventions/opentelemetry.go
+# instead of hardcoding it here.
+_ATTRIBUTE_HOST_NAME = "host.name"
+
 
 class InvalidConfigurationError(Exception):
     """
@@ -97,6 +103,7 @@ def configure_opentelemetry(
     _auto_instrumented: bool = False,
 ):
     # pylint: disable=too-many-locals
+    # pylint: disable=too-many-statements
     """
     Configures OpenTelemetry with Lightstep environment variables
 
@@ -288,6 +295,27 @@ def configure_opentelemetry(
         )
     )
 
+    if _ATTRIBUTE_HOST_NAME not in resource_attributes.keys() or not (
+        resource_attributes[_ATTRIBUTE_HOST_NAME]
+    ):
+
+        no_hostname_message = (
+            "set it with the environment variable OTEL_RESOURCE_ATTRIBUTES or "
+            'with the resource_attributes argument. Use "host.name" as key '
+            "in both cases."
+        )
+        try:
+            hostname = gethostname()
+            if not hostname:
+                _logger.warning("Hostname is empty, %s", no_hostname_message)
+            else:
+                resource_attributes[_ATTRIBUTE_HOST_NAME] = hostname
+        # pylint: disable=broad-except
+        except Exception:
+            _logger.exception(
+                "Unable to get hostname, %s", no_hostname_message
+            )
+
     get_tracer_provider().resource = Resource(resource_attributes)
 
     if log_level >= DEBUG:
@@ -310,7 +338,11 @@ class LightstepLauncherInstrumentor(BaseInstrumentor):
             configure_opentelemetry(_auto_instrumented=True)
         except InvalidConfigurationError:
             _logger.exception(
-                "application instrumented via opentelemetry-instrument. all required configuration must be set via environment variables"
+                (
+                    "application instrumented via opentelemetry-instrument. "
+                    "all required configuration must be set via environment "
+                    "variables"
+                )
             )
 
     def _uninstrument(self, **kwargs):
