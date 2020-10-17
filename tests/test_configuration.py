@@ -47,7 +47,8 @@ class TestConfiguration(TestCase):
         set_tracer_provider(TracerProvider())
         set_meter_provider(MeterProvider())
 
-    def test_no_service_name(self):
+    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
+    def test_no_service_name(self, mock_otlp_metrics_exporter):
         with self.assertRaises(InvalidConfigurationError):
             with self.assertLogs(logger=_logger, level="ERROR") as log:
                 configure_opentelemetry()
