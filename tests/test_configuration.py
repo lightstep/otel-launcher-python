@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from unittest import TestCase
-from unittest.mock import patch, ANY
+from unittest.mock import patch, ANY, Mock
 from time import sleep
 from sys import version_info
 from logging import DEBUG, WARNING
@@ -309,5 +309,34 @@ class TestConfiguration(TestCase):
             {
                 "service.name": "service_name",
                 _ATTRIBUTE_HOST_NAME: "other_hostname",
+            }
+        )
+
+    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
+    @patch("opentelemetry.launcher.configuration.LightstepOTLPSpanExporter")
+    @patch("opentelemetry.launcher.configuration._common_configuration")
+    def test_metric_configuration(
+        self,
+        mock_common_configuration,
+        mock_otlp_span_exporter,
+        mock_otlp_metrics_exporter,
+    ):
+
+        credentials_mock = Mock()
+        mock_common_configuration.return_value = credentials_mock
+
+        configure_opentelemetry(
+            service_name="service_name",
+            service_version="service_version",
+            access_token="a" * 104,
+            metric_exporter_endpoint="metric_exporter_endpoint",
+            system_metrics_config={"a": "b", "c": "d"}
+        )
+
+        mock_otlp_metrics_exporter.assert_called_with(
+            **{
+                "endpoint": "metric_exporter_endpoint",
+                "credentials": credentials_mock,
+                "metadata": (("lightstep-access-token", "a" * 104),),
             }
         )

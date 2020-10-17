@@ -35,15 +35,16 @@ from opentelemetry.trace.propagation.tracecontext import (
     TraceContextTextMapPropagator,
 )
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
+from opentelemetry.instrumentation.system_metrics import SystemMetrics
 from opentelemetry.launcher.metrics import LightstepOTLPMetricsExporter
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.launcher.version import __version__
-from opentelemetry.propagators import set_global_textmap
 from opentelemetry.metrics import (
     get_meter,
     get_meter_provider,
     set_meter_provider,
 )
+from opentelemetry.propagators import set_global_textmap
 from opentelemetry.propagators.composite import CompositeHTTPPropagator
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.trace import Resource, TracerProvider
@@ -53,7 +54,6 @@ from opentelemetry.sdk.trace.export import (
 )
 from opentelemetry.sdk.trace.propagation.b3_format import B3Format
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
-from opentelemetry.instrumentation.system_metrics import SystemMetrics
 
 _env = Env()
 _logger = getLogger(__name__)
@@ -98,6 +98,25 @@ class InvalidConfigurationError(Exception):
     """
     To be raised when an invalid configuration is attempted
     """
+
+
+def _common_configuration(
+    provider_setter, provider_class, environment_variable, insecure
+):
+    if _env.str(environment_variable, None) is None:
+        # FIXME now that new values can be set in the global configuration
+        # object, check for this object having a tracer_provider attribute,
+        # if not, set it to "sdk_tracer_provider" instead of using
+        # set_x_provider, this in order to avoid having more than one
+        # method of setting configuration.
+        provider_setter(provider_class())
+
+    if insecure:
+        credentials = None
+    else:
+        credentials = ssl_channel_credentials()
+
+    return credentials
 
 
 def configure_opentelemetry(
@@ -286,27 +305,9 @@ def configure_opentelemetry(
     if access_token != "":
         metadata = (("lightstep-access-token", access_token),)
 
-    def common_configuration(
-        provider_setter, provider_class, environment_variable, insecure
-    ):
-        if _env.str(environment_variable, None) is None:
-            # FIXME now that new values can be set in the global configuration
-            # object, check for this object having a tracer_provider attribute,
-            # if not, set it to "sdk_tracer_provider" instead of using
-            # set_x_provider, this in order to avoid having more than one
-            # method of setting configuration.
-            provider_setter(provider_class())
-
-        if insecure:
-            credentials = None
-        else:
-            credentials = ssl_channel_credentials()
-
-        return credentials
-
     _logger.debug("configuring tracing")
 
-    credentials = common_configuration(
+    credentials = _common_configuration(
         set_tracer_provider,
         TracerProvider,
         "OTEL_PYTHON_TRACER_PROVIDER",
@@ -355,7 +356,7 @@ def configure_opentelemetry(
 
     _logger.debug("configuring metrics")
 
-    credentials = common_configuration(
+    credentials = _common_configuration(
         set_meter_provider,
         MeterProvider,
         "OTEL_PYTHON_METER_PROVIDER",
