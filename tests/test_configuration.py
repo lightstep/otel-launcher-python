@@ -204,7 +204,7 @@ class TestConfiguration(TestCase):
             self.assertIsNone(carrier.get("x-b3-traceid"))
             self.assertEqual(carrier.get("baggage"), "abc=def")
 
-    def test_propagation_baggage(self):
+    def test_propagation_tracecontext(self):
         configure_opentelemetry(
             service_name="service_name",
             service_version="service_version",
