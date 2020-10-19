@@ -1,7 +1,8 @@
 **/build/*
 **/dist/*
 **/.vscode/*
-**/opentelemetry_lightstep.egg-info/*
+**/*.egg-info/*
+**/pip-wheel-metadata/*
 .coverage
 coverage.xml
 __pycache__
