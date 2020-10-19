@@ -1,5 +1,10 @@
 ## Unreleased
 
+- Add support for baggage propagation (#51)
+- Updating dependencies to 0.14b0
+
+## 0.13b0
+
 - Add error message when `configure_opentelemetry` fails
   from auto-instrumentation
 

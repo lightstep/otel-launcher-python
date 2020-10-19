@@ -29,6 +29,7 @@ from typing import Optional
 from environs import Env
 from grpc import ssl_channel_credentials
 
+from opentelemetry.baggage.propagation import BaggagePropagator
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.launcher.version import __version__
@@ -248,7 +249,10 @@ def configure_opentelemetry(
     # classes
     set_global_textmap(
         CompositeHTTPPropagator(
-            [{"b3": B3Format()}[propagator] for propagator in propagators]
+            [
+                {"b3": B3Format(), "baggage": BaggagePropagator()}[propagator]
+                for propagator in propagators
+            ]
         )
     )
 
