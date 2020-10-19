@@ -24,7 +24,7 @@ from opentelemetry.launcher.configuration import (
     InvalidConfigurationError,
 )
 from opentelemetry.launcher.version import __version__
-from opentelemetry import trace
+from opentelemetry import baggage, trace
 from opentelemetry.propagators import get_global_textmap
 from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
@@ -170,17 +170,55 @@ class TestConfiguration(TestCase):
             }
         )
 
-    def test_propagation(self):
+    def test_propagation_default(self):
         configure_opentelemetry(
             service_name="service_name",
             service_version="service_version",
             access_token="a" * 104,
         )
+
         with trace.get_tracer(__name__).start_as_current_span("test") as span:
+            ctx = baggage.set_baggage("abc", "def")
             prop = get_global_textmap()
             carrier = {}
-            prop.inject(dict.__setitem__, carrier)
+            prop.inject(dict.__setitem__, carrier, context=ctx)
             self.assertEqual(
-                format(span.get_context().trace_id, "032x"),
+                format(span.get_span_context().trace_id, "032x"),
                 carrier.get("x-b3-traceid"),
             )
+            self.assertIsNone(carrier.get("baggage"))
+
+    def test_propagation_baggage(self):
+        configure_opentelemetry(
+            service_name="service_name",
+            service_version="service_version",
+            access_token="a" * 104,
+            propagators="baggage",
+        )
+
+        with trace.get_tracer(__name__).start_as_current_span("test") as span:
+            ctx = baggage.set_baggage("abc", "def")
+            prop = get_global_textmap()
+            carrier = {}
+            prop.inject(dict.__setitem__, carrier, context=ctx)
+            self.assertIsNone(carrier.get("x-b3-traceid"))
+            self.assertEqual(carrier.get("baggage"), "abc=def")
+
+    def test_propagation_multiple(self):
+        configure_opentelemetry(
+            service_name="service_name",
+            service_version="service_version",
+            access_token="a" * 104,
+            propagators="b3,baggage",
+        )
+
+        with trace.get_tracer(__name__).start_as_current_span("test") as span:
+            ctx = baggage.set_baggage("abc", "def")
+            prop = get_global_textmap()
+            carrier = {}
+            prop.inject(dict.__setitem__, carrier, context=ctx)
+            self.assertEqual(
+                format(span.get_span_context().trace_id, "032x"),
+                carrier.get("x-b3-traceid"),
+            )
+            self.assertEqual(carrier.get("baggage"), "abc=def")
