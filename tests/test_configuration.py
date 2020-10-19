@@ -251,3 +251,18 @@ class TestConfiguration(TestCase):
                 _ATTRIBUTE_HOST_NAME: "the_hostname",
             }
         )
+
+        configure_opentelemetry(
+            service_name="service_name",
+            access_token="a" * 104,
+            resource_attributes="{}=other_hostname".format(
+                _ATTRIBUTE_HOST_NAME
+            )
+        )
+
+        mock_resource.assert_called_with(
+            {
+                "service.name": "service_name",
+                _ATTRIBUTE_HOST_NAME: "other_hostname",
+            }
+        )
