@@ -1,7 +1,8 @@
 ## Unreleased
 
 - Add support for baggage propagation (#51)
-- Updating dependencies to 0.14b0
+- Updating dependencies to 0.14b0 (#51)
+- Add support for tracecontext propagation (#53)
 
 ## 0.13b0
 
