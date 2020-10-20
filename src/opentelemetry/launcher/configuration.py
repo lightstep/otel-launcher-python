@@ -31,9 +31,6 @@ from environs import Env
 from grpc import ssl_channel_credentials
 
 from opentelemetry.baggage.propagation import BaggagePropagator
-from opentelemetry.trace.propagation.tracecontext import (
-    TraceContextTextMapPropagator,
-)
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.instrumentation.system_metrics import SystemMetrics
 from opentelemetry.launcher.metrics import LightstepOTLPMetricsExporter
@@ -54,6 +51,9 @@ from opentelemetry.sdk.trace.export import (
 )
 from opentelemetry.sdk.trace.propagation.b3_format import B3Format
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
+from opentelemetry.trace.propagation.tracecontext import (
+    TraceContextTextMapPropagator,
+)
 
 _env = Env()
 _logger = getLogger(__name__)

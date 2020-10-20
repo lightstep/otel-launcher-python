@@ -120,7 +120,7 @@ class TestConfiguration(TestCase):
         )
 
     @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
-    def test_log_level(self, mock_otlo_metrics_exporter):
+    def test_log_level(self, mock_otlp_metrics_exporter):
 
         with self.assertLogs(logger=_logger, level=DEBUG):
             configure_opentelemetry(
@@ -217,7 +217,8 @@ class TestConfiguration(TestCase):
             )
             self.assertIsNone(carrier.get("baggage"))
 
-    def test_propagation_baggage(self):
+    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
+    def test_propagation_baggage(self, mock_otlp_metrics_exporter):
         configure_opentelemetry(
             service_name="service_name",
             service_version="service_version",
@@ -233,7 +234,8 @@ class TestConfiguration(TestCase):
             self.assertIsNone(carrier.get("x-b3-traceid"))
             self.assertEqual(carrier.get("baggage"), "abc=def")
 
-    def test_propagation_tracecontext(self):
+    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
+    def test_propagation_tracecontext(self, mock_otlp_metrics_exporter):
         configure_opentelemetry(
             service_name="service_name",
             service_version="service_version",
@@ -253,7 +255,8 @@ class TestConfiguration(TestCase):
                 carrier.get("traceparent"),
             )
 
-    def test_propagation_multiple(self):
+    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
+    def test_propagation_multiple(self, mock_otlp_metrics_exporter):
         configure_opentelemetry(
             service_name="service_name",
             service_version="service_version",
@@ -278,9 +281,12 @@ class TestConfiguration(TestCase):
                 carrier.get("traceparent"),
             )
 
+    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
     @patch("opentelemetry.launcher.configuration.gethostname")
     @patch("opentelemetry.launcher.configuration.Resource")
-    def test_hostname(self, mock_resource, mock_gethostname):
+    def test_hostname(
+        self, mock_resource, mock_gethostname, mock_otlp_metrics_exporter
+    ):
 
         mock_gethostname.return_value = "the_hostname"
 
