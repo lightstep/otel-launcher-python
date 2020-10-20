@@ -2,8 +2,10 @@
 
 ## 0.14b0
 
+- Add support for `host.name` in Resource attributes
 - Add support for baggage propagation (#51)
-- Updating dependencies to 0.14b0
+- Updating dependencies to 0.14b0 (#51)
+- Add support for tracecontext propagation (#52)
 
 ## 0.13b0
 
