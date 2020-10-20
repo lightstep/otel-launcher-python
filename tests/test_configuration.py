@@ -22,6 +22,7 @@ from opentelemetry.launcher.configuration import (
     configure_opentelemetry,
     _logger,
     InvalidConfigurationError,
+    _ATTRIBUTE_HOST_NAME,
 )
 from opentelemetry.launcher.version import __version__
 from opentelemetry import baggage, trace
@@ -138,8 +139,11 @@ class TestConfiguration(TestCase):
                     log_level="WaRNiNG",
                 )
 
+    @patch("opentelemetry.launcher.configuration.gethostname")
     @patch("opentelemetry.launcher.configuration.Resource")
-    def test_resource_attributes(self, mock_resource):
+    def test_resource_attributes(self, mock_resource, mock_gethostname):
+        mock_gethostname.return_value = "the_hostname"
+
         configure_opentelemetry(
             service_name="service_name",
             service_version="service_version",
@@ -152,11 +156,15 @@ class TestConfiguration(TestCase):
                 "telemetry.sdk.version": __version__,
                 "service.name": "service_name",
                 "service.version": "service_version",
+                _ATTRIBUTE_HOST_NAME: "the_hostname",
             }
         )
 
+    @patch("opentelemetry.launcher.configuration.gethostname")
     @patch("opentelemetry.launcher.configuration.Resource")
-    def test_service_version(self, mock_resource):
+    def test_service_version(self, mock_resource, mock_gethostname):
+        mock_gethostname.return_value = "the_hostname"
+
         configure_opentelemetry(
             service_name="service_name",
             access_token="a" * 104,
@@ -167,6 +175,7 @@ class TestConfiguration(TestCase):
                 "telemetry.sdk.language": "python",
                 "telemetry.sdk.version": __version__,
                 "service.name": "service_name",
+                _ATTRIBUTE_HOST_NAME: "the_hostname",
             }
         )
 
@@ -196,7 +205,7 @@ class TestConfiguration(TestCase):
             propagators="baggage",
         )
 
-        with trace.get_tracer(__name__).start_as_current_span("test") as span:
+        with trace.get_tracer(__name__).start_as_current_span("test"):
             ctx = baggage.set_baggage("abc", "def")
             prop = get_global_textmap()
             carrier = {}
@@ -248,3 +257,38 @@ class TestConfiguration(TestCase):
                 ),
                 carrier.get("traceparent"),
             )
+
+    @patch("opentelemetry.launcher.configuration.gethostname")
+    @patch("opentelemetry.launcher.configuration.Resource")
+    def test_hostname(self, mock_resource, mock_gethostname):
+
+        mock_gethostname.return_value = "the_hostname"
+
+        configure_opentelemetry(
+            service_name="service_name",
+            access_token="a" * 104,
+        )
+
+        mock_resource.assert_called_with(
+            {
+                "telemetry.sdk.language": "python",
+                "telemetry.sdk.version": __version__,
+                "service.name": "service_name",
+                _ATTRIBUTE_HOST_NAME: "the_hostname",
+            }
+        )
+
+        configure_opentelemetry(
+            service_name="service_name",
+            access_token="a" * 104,
+            resource_attributes="{}=other_hostname".format(
+                _ATTRIBUTE_HOST_NAME
+            )
+        )
+
+        mock_resource.assert_called_with(
+            {
+                "service.name": "service_name",
+                _ATTRIBUTE_HOST_NAME: "other_hostname",
+            }
+        )
