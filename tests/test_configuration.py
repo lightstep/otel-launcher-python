@@ -213,12 +213,32 @@ class TestConfiguration(TestCase):
             self.assertIsNone(carrier.get("x-b3-traceid"))
             self.assertEqual(carrier.get("baggage"), "abc=def")
 
+    def test_propagation_tracecontext(self):
+        configure_opentelemetry(
+            service_name="service_name",
+            service_version="service_version",
+            access_token="a" * 104,
+            propagators="tracecontext",
+        )
+
+        with trace.get_tracer(__name__).start_as_current_span("test") as span:
+            ctx = baggage.set_baggage("abc", "def")
+            prop = get_global_textmap()
+            carrier = {}
+            prop.inject(dict.__setitem__, carrier, context=ctx)
+            self.assertIn(
+                "00-{}".format(
+                    format(span.get_span_context().trace_id, "032x")
+                ),
+                carrier.get("traceparent"),
+            )
+
     def test_propagation_multiple(self):
         configure_opentelemetry(
             service_name="service_name",
             service_version="service_version",
             access_token="a" * 104,
-            propagators="b3,baggage",
+            propagators="b3,baggage,tracecontext",
         )
 
         with trace.get_tracer(__name__).start_as_current_span("test") as span:
@@ -231,6 +251,12 @@ class TestConfiguration(TestCase):
                 carrier.get("x-b3-traceid"),
             )
             self.assertEqual(carrier.get("baggage"), "abc=def")
+            self.assertIn(
+                "00-{}".format(
+                    format(span.get_span_context().trace_id, "032x")
+                ),
+                carrier.get("traceparent"),
+            )
 
     @patch("opentelemetry.launcher.configuration.gethostname")
     @patch("opentelemetry.launcher.configuration.Resource")
