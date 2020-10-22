@@ -1,6 +1,6 @@
 ![build status](https://github.com/lightstep/otel-launcher-python/workflows/Python%20package/badge.svg) [![PyPI version](https://badge.fury.io/py/opentelemetry-launcher.svg)](https://badge.fury.io/py/opentelemetry-launcher) [![Downloads](https://pepy.tech/badge/opentelemetry-launcher)](https://pepy.tech/project/opentelemetry-launcher)
 
-# Launcher, an OpenTelemetry Configuration Layer 🚀
+# Launcher, a Lightstep Distro for OpenTelemetry 🚀
 
 _NOTE: This is in beta and is expected to GA in Fall 2020._
 
