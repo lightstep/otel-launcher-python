@@ -1,5 +1,9 @@
 ## Unreleased
 
+## 0.15b0
+
+- Add configuration for Metrics Exporter
+
 ## 0.14b0
 
 - Add support for `host.name` in Resource attributes
