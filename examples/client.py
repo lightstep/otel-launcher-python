@@ -1,4 +1,5 @@
 import requests
+from time import sleep
 
 from opentelemetry import baggage, trace
 from opentelemetry.launcher import configure_opentelemetry
@@ -57,4 +58,6 @@ configure_opentelemetry(
 )
 
 app = App(trace.get_tracer(__name__))
-app.send_requests()
+while True:
+    app.send_requests()
+    sleep(5)

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import logging
 
 from flask import Flask
 from opentelemetry.launcher import configure_opentelemetry
