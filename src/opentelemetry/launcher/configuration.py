@@ -300,10 +300,10 @@ def configure_opentelemetry(
         )
     )
 
-    metadata = None
+    headers = None
 
     if access_token != "":
-        metadata = (("lightstep-access-token", access_token),)
+        headers = (("lightstep-access-token", access_token),)
 
     _logger.debug("configuring tracing")
 
@@ -321,7 +321,7 @@ def configure_opentelemetry(
             LightstepOTLPSpanExporter(
                 endpoint=span_exporter_endpoint,
                 credentials=credentials,
-                metadata=metadata,
+                headers=headers,
             )
         )
     )
@@ -366,7 +366,7 @@ def configure_opentelemetry(
     lightstep_otlp_metrics_exporter = LightstepOTLPMetricsExporter(
         endpoint=metric_exporter_endpoint,
         credentials=credentials,
-        metadata=metadata,
+        headers=headers,
     )
 
     SystemMetrics(lightstep_otlp_metrics_exporter, system_metrics_config)

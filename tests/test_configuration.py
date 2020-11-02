@@ -105,7 +105,7 @@ class TestConfiguration(TestCase):
 
     @patch("opentelemetry.launcher.configuration.LightstepOTLPSpanExporter")
     @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
-    def test_metadata(
+    def test_headers(
         self, mock_otlp_metrics_exporter, mock_otlp_span_exporter
     ):
 
@@ -116,7 +116,7 @@ class TestConfiguration(TestCase):
         mock_otlp_span_exporter.assert_called_with(
             endpoint="ingest.lightstep.com:443",
             credentials=ANY,
-            metadata=(("lightstep-access-token", "a" * 104),),
+            headers=(("lightstep-access-token", "a" * 104),),
         )
 
     @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
@@ -344,6 +344,6 @@ class TestConfiguration(TestCase):
             **{
                 "endpoint": "metric_exporter_endpoint",
                 "credentials": credentials_mock,
-                "metadata": (("lightstep-access-token", "a" * 104),),
+                "headers": (("lightstep-access-token", "a" * 104),),
             }
         )
