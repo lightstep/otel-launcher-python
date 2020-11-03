@@ -37,7 +37,6 @@ from opentelemetry.launcher.metrics import LightstepOTLPMetricsExporter
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.launcher.version import __version__
 from opentelemetry.metrics import (
-    # get_meter,
     get_meter_provider,
     set_meter_provider,
 )
@@ -374,7 +373,6 @@ def configure_opentelemetry(
     )
 
     get_meter_provider().start_pipeline(
-        # get_meter(__name__),
         system_metrics.meter,
         lightstep_otlp_metrics_exporter,
         5,
