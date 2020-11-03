@@ -128,7 +128,7 @@ def configure_opentelemetry(
     resource_attributes: str = _OTEL_RESOURCE_ATTRIBUTES,
     log_level: str = _OTEL_LOG_LEVEL,
     span_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
-    metric_exporter_insecure: bool = (_OTEL_EXPORTER_OTLP_METRIC_INSECURE),
+    metric_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_METRIC_INSECURE,
     system_metrics_config: dict = None,
     _auto_instrumented: bool = False,
 ):

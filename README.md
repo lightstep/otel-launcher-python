@@ -45,7 +45,7 @@ configure_opentelemetry(
     service_version="1.2.3",
     access_token="my-token",
     span_exporter_endpoint="ingest.lightstep.com:443",
-    metric_exporter_endpoint="ingest.lightstep.com:443/metrics",
+    metric_exporter_endpoint="ingest.lightstep.com:443",
     log_level=debug,
     span_exporter_insecure=False,
     metric_exporter_insecure=False,
