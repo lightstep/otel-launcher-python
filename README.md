@@ -100,7 +100,8 @@ cd docs/examples/auto-instrumentation
 python client.py testing
 ```
 
-This should produce spans that can be captured in the Lightstep Explorer Web UI.
+This should produce spans that can be captured in the Lightstep Explorer.
+This should also produce System Metrics that can be captured in the Lightstep Dashboards.
 
 ### Configuration Options
 
@@ -111,7 +112,7 @@ This should produce spans that can be captured in the Lightstep Explorer Web UI.
 |access_token                     |LS_ACCESS_TOKEN|n|`None`|
 |span_exporter_endpoint                    |OTEL_EXPORTER_OTLP_SPAN_ENDPOINT|n|`ingest.lightstep.com:443`|
 |span_exporter_insecure  |OTEL_EXPORTER_OTLP_SPAN_INSECURE|n|`False`|
-|metric_exporter_endpoint                  |OTEL_EXPORTER_OTLP_METRIC_ENDPOINT|n|`ingest.lightstep.com:443/metrics`|
+|metric_exporter_endpoint                  |OTEL_EXPORTER_OTLP_METRIC_ENDPOINT|n|`ingest.lightstep.com:443`|
 |metric_exporter_insecure|OTEL_EXPORTER_OTLP_METRIC_INSECURE|n|`False`|
 |propagators                      |OTEL_PROPAGATORS|n|`b3`|
 |resource_attributes                  |OTEL_RESOURCE_ATTRIBUTES|n|`telemetry.sdk.language=python,telemetry.sdk.version=0.12b0`|
