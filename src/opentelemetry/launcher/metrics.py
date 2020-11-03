@@ -12,4 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = "0.15b0"
+from logging import getLogger
+
+from opentelemetry.exporter.otlp.metrics_exporter import OTLPMetricsExporter
+
+_logger = getLogger(__name__)
+
+
+class LightstepOTLPMetricsExporter(OTLPMetricsExporter):
+    def export(self, *args, **kwargs):
+        try:
+            super().export(*args, **kwargs)
+        except Exception as error:
+            _logger.exception(
+                "Unable to export metrics to satellite: %s", error
+            )
+            raise

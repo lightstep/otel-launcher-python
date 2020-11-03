@@ -31,14 +31,18 @@ from environs import Env
 from grpc import ssl_channel_credentials
 
 from opentelemetry.baggage.propagation import BaggagePropagator
-from opentelemetry.trace.propagation.tracecontext import (
-    TraceContextTextMapPropagator,
-)
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
+from opentelemetry.instrumentation.system_metrics import SystemMetrics
+from opentelemetry.launcher.metrics import LightstepOTLPMetricsExporter
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.launcher.version import __version__
+from opentelemetry.metrics import (
+    get_meter_provider,
+    set_meter_provider,
+)
 from opentelemetry.propagators import set_global_textmap
 from opentelemetry.propagators.composite import CompositeHTTPPropagator
+from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.trace import Resource, TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchExportSpanProcessor,
@@ -46,13 +50,16 @@ from opentelemetry.sdk.trace.export import (
 )
 from opentelemetry.sdk.trace.propagation.b3_format import B3Format
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
+from opentelemetry.trace.propagation.tracecontext import (
+    TraceContextTextMapPropagator,
+)
 
 _env = Env()
 _logger = getLogger(__name__)
 
 _DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT = "ingest.lightstep.com:443"
 _DEFAULT_OTEL_EXPORTER_OTLP_METRIC_ENDPOINT = (
-    "ingest.lightstep.com:443/metrics"
+    "ingest.lightstep.com:443"
 )
 
 _LS_ACCESS_TOKEN = _env.str("LS_ACCESS_TOKEN", None)
@@ -92,6 +99,25 @@ class InvalidConfigurationError(Exception):
     """
 
 
+def _common_configuration(
+    provider_setter, provider_class, environment_variable, insecure
+):
+    if _env.str(environment_variable, None) is None:
+        # FIXME now that new values can be set in the global configuration
+        # object, check for this object having a tracer_provider attribute,
+        # if not, set it to "sdk_tracer_provider" instead of using
+        # set_x_provider, this in order to avoid having more than one
+        # method of setting configuration.
+        provider_setter(provider_class())
+
+    if insecure:
+        credentials = None
+    else:
+        credentials = ssl_channel_credentials()
+
+    return credentials
+
+
 def configure_opentelemetry(
     access_token: str = _LS_ACCESS_TOKEN,
     span_exporter_endpoint: str = _OTEL_EXPORTER_OTLP_SPAN_ENDPOINT,
@@ -102,7 +128,8 @@ def configure_opentelemetry(
     resource_attributes: str = _OTEL_RESOURCE_ATTRIBUTES,
     log_level: str = _OTEL_LOG_LEVEL,
     span_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
-    metric_exporter_insecure: bool = (_OTEL_EXPORTER_OTLP_METRIC_INSECURE),
+    metric_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_METRIC_INSECURE,
+    system_metrics_config: dict = None,
     _auto_instrumented: bool = False,
 ):
     # pylint: disable=too-many-locals
@@ -161,6 +188,8 @@ def configure_opentelemetry(
             OTEL_EXPORTER_OTLP_METRIC_INSECURE, a boolean value that indicates
             if an insecure channel is to be used to send spans to the
             satellite. Defaults to `False`.
+        system_metrics_config (dict):
+            Configuration for the SystemMetrics instrumentation
     """
 
     log_levels = {
@@ -270,25 +299,19 @@ def configure_opentelemetry(
         )
     )
 
-    _logger.debug("configuring tracing")
-
-    metadata = None
-
-    if _env.str("OPENTELEMETRY_PYTHON_TRACER_PROVIDER", None) is None:
-        # FIXME now that new values can be set in the global configuration
-        # object, check for this object having a tracer_provider attribute, if
-        # not, set it to "sdk_tracer_provider" instead of using
-        # set_tracer_provider, this in order to avoid having more than one
-        # method of setting configuration.
-        set_tracer_provider(TracerProvider())
+    headers = None
 
     if access_token != "":
-        metadata = (("lightstep-access-token", access_token),)
+        headers = (("lightstep-access-token", access_token),)
 
-    credentials = ssl_channel_credentials()
+    _logger.debug("configuring tracing")
 
-    if span_exporter_insecure:
-        credentials = None
+    credentials = _common_configuration(
+        set_tracer_provider,
+        TracerProvider,
+        "OTEL_PYTHON_TRACER_PROVIDER",
+        span_exporter_insecure,
+    )
 
     # FIXME Do the same for metrics when the OTLPMetricsExporter is in
     # OpenTelemetry.
@@ -297,7 +320,7 @@ def configure_opentelemetry(
             LightstepOTLPSpanExporter(
                 endpoint=span_exporter_endpoint,
                 credentials=credentials,
-                metadata=metadata,
+                headers=headers,
             )
         )
     )
@@ -329,6 +352,33 @@ def configure_opentelemetry(
         get_tracer_provider().add_span_processor(
             BatchExportSpanProcessor(ConsoleSpanExporter())
         )
+
+    _logger.debug("configuring metrics")
+
+    credentials = _common_configuration(
+        set_meter_provider,
+        MeterProvider,
+        "OTEL_PYTHON_METER_PROVIDER",
+        metric_exporter_insecure,
+    )
+
+    lightstep_otlp_metrics_exporter = LightstepOTLPMetricsExporter(
+        endpoint=metric_exporter_endpoint,
+        credentials=credentials,
+        headers=headers,
+    )
+
+    system_metrics = SystemMetrics(
+        lightstep_otlp_metrics_exporter, system_metrics_config
+    )
+
+    get_meter_provider().start_pipeline(
+        system_metrics.meter,
+        lightstep_otlp_metrics_exporter,
+        5,
+    )
+
+    get_meter_provider().resource = Resource(resource_attributes)
 
 
 def _validate_token(token: str):
