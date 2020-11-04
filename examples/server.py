@@ -5,7 +5,6 @@ from opentelemetry.launcher import configure_opentelemetry
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 
 
-PORT = 8000
 configure_opentelemetry(
     service_name="server-456",
     service_version="4.5.6",
@@ -22,4 +21,4 @@ def hello():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=PORT)
+    app.run(host="0.0.0.0", port=8000)
