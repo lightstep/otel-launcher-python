@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from time import sleep
-from threading import Thread
+from multiprocessing import Process
 from os import environ
 
 from pytest import skip
@@ -38,29 +38,14 @@ def test_example(monkeypatch):
     ls_service_name = environ.get("LS_SERVICE_NAME")
     environ["LS_SERVICE_NAME"] = "metrics_testing"
 
-    class DaemonThread(Thread):
-
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs, daemon=True)
-
-    class ServerThread(DaemonThread):
-
-        def run(self):
-            receive_requests()
-
-    class ClientThread(DaemonThread):
-
-        def run(self):
-            send_requests()
-
     try:
-        server_thread = ServerThread()
-        client_thread = ClientThread()
+        server_process = Process(target=receive_requests)
+        client_process = Process(target=send_requests)
 
-        server_thread.start()
-        client_thread.start()
+        server_process.start()
+        client_process.start()
 
-        client_thread.join()
+        client_process.join()
 
         sleep(5)
 

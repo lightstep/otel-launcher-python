@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask import Flask
+from flask import Flask, request
 from opentelemetry.launcher import configure_opentelemetry
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 
@@ -15,8 +15,15 @@ def receive_requests():
     app = Flask(__name__)
     FlaskInstrumentor().instrument_app(app)
 
+    @app.route("/shutdown")
+    def shutdown():
+        print("shutdown")
+        request.environ.get("werkzeug.server.shutdown")()
+        return "shutdown"
+
     @app.route("/hello")
     def hello():
+        print("hello")
         return "hello"
 
     app.run(host="0.0.0.0", port=8000)

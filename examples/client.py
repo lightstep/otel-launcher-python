@@ -9,7 +9,6 @@ from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
 
 def send_requests():
-
     RequestsInstrumentor().instrument()
 
     configure_opentelemetry(
@@ -51,6 +50,8 @@ def send_requests():
                 print("Hello world from OpenTelemetry Python!")
 
         sleep(1)
+
+    request("http://localhost:8000/shutdown")
 
 
 if __name__ == "__main__":
