@@ -14,7 +14,7 @@ def send_requests():
     configure_opentelemetry(
         service_name="service-123",
         service_version="1.2.3",  # optional
-        # log_level="DEBUG",  # optional
+        log_level="DEBUG",  # optional
     )
 
     tracer = get_tracer(__name__)

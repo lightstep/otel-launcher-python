@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
 
+import os
+
 from flask import Flask, request
+
 from opentelemetry.launcher import configure_opentelemetry
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 
 
-def receive_requests():
+def receive_requests(environ_kwargs=None):
+    if environ_kwargs is not None:
+        os.environ = environ_kwargs
+
     configure_opentelemetry(
         service_name="server-456",
         service_version="4.5.6",
-        # log_level="DEBUG",  # optional
+        log_level="DEBUG",  # optional
     )
 
     app = Flask(__name__)

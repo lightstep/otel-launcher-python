@@ -13,41 +13,41 @@
 # limitations under the License.
 
 from time import sleep
-from multiprocessing import Process
+from subprocess import Popen  # , PIPE
+from shlex import split
 from os import environ
 
 from pytest import skip
 
-from opentelemetry.launcher.examples.client import send_requests
-from opentelemetry.launcher.examples.server import receive_requests
 
+def test_example():
 
-def test_example(monkeypatch):
     if environ.get("LS_ACCESS_TOKEN") is None:
         skip(
             "Environment variable LS_ACCESS_TOKEN is not set, "
             "set again and rerun"
         )
 
-    monkeypatch.setenv("OTEL_PYTHON_METER_PROVIDER", "sdk_meter_provider")
-    monkeypatch.setenv("LS_SERVICE_NAME", "metrics_testing")
-
-    otel_python_meter_provider = environ.get("OTEL_PYTHON_METER_PROVIDER")
-    environ["OTEL_PYTHON_METER_PROVIDER"] = "sdk_meter_provider"
-
-    ls_service_name = environ.get("LS_SERVICE_NAME")
-    environ["LS_SERVICE_NAME"] = "metrics_testing"
+    environment = {
+        "OTEL_PYTHON_METER_PROVIDER": "sdk_meter_provider",
+        # "LS_SERVICE_NAME": "metrics_testing",
+        "LS_ACCESS_TOKEN": environ.get("LS_ACCESS_TOKEN")
+    }
 
     try:
-        server_process = Process(target=receive_requests)
-        client_process = Process(target=send_requests)
+        server_process = Popen(
+            split(".nox/test-3-8/bin/python3 examples/server.py"),
+            start_new_session=True,
+            env=environment,
+        )
 
-        server_process.start()
-        client_process.start()
+        client_process = Popen(
+            split(".nox/test-3-8/bin/python3 examples/client.py"),
+            start_new_session=True,
+            env=environment
+        )
 
-        client_process.join()
-
-        sleep(5)
+        sleep(15)
 
         print("Go to your metrics dashboard and check for exported metrics")
         print("Are there exported metrics in your metrics dashboard (Y/N)?")
@@ -57,10 +57,15 @@ def test_example(monkeypatch):
             response == "Y" or response == "y"
         ), "No metrics exported to your metrics dashboard"
     finally:
-        if otel_python_meter_provider is not None:
-            environ[
-                "OTEL_PYTHON_METER_PROVIDER"
-            ] = otel_python_meter_provider
+        try:
+            server_process.terminate()
+            client_process.terminate()
+        except Exception:
+            pass
+        # if otel_python_meter_provider is not None:
+        #     environ[
+        #         "OTEL_PYTHON_METER_PROVIDER"
+        #     ] = otel_python_meter_provider
 
-        if ls_service_name is not None:
-            environ["LS_SERVICE_NAME"] = ls_service_name
+        # if ls_service_name is not None:
+        #     environ["LS_SERVICE_NAME"] = ls_service_name
