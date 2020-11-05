@@ -1,6 +1,9 @@
+#!/usr/bin/env python3
+
 from time import sleep
 
 from requests import get
+from logging import basicConfig, debug, DEBUG
 
 from opentelemetry.baggage import set_baggage, get_baggage
 from opentelemetry.trace import get_tracer, get_current_span
@@ -8,13 +11,15 @@ from opentelemetry.launcher import configure_opentelemetry
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
 
+basicConfig(format="\033[95mCLIENT:\033[0m %(message)s", level=DEBUG)
+
+
 def send_requests():
     RequestsInstrumentor().instrument()
 
     configure_opentelemetry(
-        service_name="service-123",
-        service_version="1.2.3",  # optional
-        # log_level="DEBUG",  # optional
+        service_name="client_service_name",
+        service_version="client_version",  # optional
     )
 
     tracer = get_tracer(__name__)
@@ -30,24 +35,24 @@ def send_requests():
     attempts = 10
 
     for attempt in range(attempts):
-        print("sending requests {}/{}".format(attempt + 1, attempts))
-        print("current span: ", get_current_span())
+        debug("Sending requests %s/%s", attempt + 1, attempts)
 
         with tracer.start_as_current_span("foo"):
-            print("current span: ", get_current_span())
+            debug("Current span: %s", get_current_span())
 
             with tracer.start_as_current_span("add-attribute") as span:
                 span.set_attribute("attr1", "valu1")
+                debug("Current span: %s", get_current_span())
 
-            print(
-                "val: ",
+            debug(
+                "Baggage: %s",
                 get_baggage("example", set_baggage("example", "value"))
             )
 
             with tracer.start_as_current_span("bar"):
+                debug("Hello, server!")
                 request("http://localhost:8000/hello")
                 request("http://doesnotexist:8000")
-                print("Hello world from OpenTelemetry Python!")
 
         sleep(1)
 

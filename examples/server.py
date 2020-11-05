@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 
+from logging import basicConfig, debug, DEBUG
+
 from flask import Flask, request
 from opentelemetry.launcher import configure_opentelemetry
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 
 
+basicConfig(format="\033[94mSERVER:\033[0m %(message)s", level=DEBUG)
+
+
 def receive_requests():
     configure_opentelemetry(
-        service_name="server-456",
-        service_version="4.5.6",
-        # log_level="DEBUG",  # optional
+        service_name="server_service_name",
+        service_version="server_version",  # optional
     )
 
     app = Flask(__name__)
@@ -17,13 +21,13 @@ def receive_requests():
 
     @app.route("/shutdown")
     def shutdown():
-        print("shutdown")
         request.environ.get("werkzeug.server.shutdown")()
+        debug("Server shut down")
         return "shutdown"
 
     @app.route("/hello")
     def hello():
-        print("hello")
+        debug("Hello, client!")
         return "hello"
 
     app.run(host="0.0.0.0", port=8000)

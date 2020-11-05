@@ -30,7 +30,6 @@ def test_example():
 
     environment = {
         "OTEL_PYTHON_METER_PROVIDER": "sdk_meter_provider",
-        # "LS_SERVICE_NAME": "metrics_testing",
         "LS_ACCESS_TOKEN": environ.get("LS_ACCESS_TOKEN")
     }
 
@@ -49,6 +48,7 @@ def test_example():
 
         sleep(15)
 
+        print()
         print("Go to your metrics dashboard and check for exported metrics")
         print("Are there exported metrics in your metrics dashboard (Y/N)?")
 
@@ -62,10 +62,3 @@ def test_example():
             client_process.terminate()
         except Exception:
             pass
-        # if otel_python_meter_provider is not None:
-        #     environ[
-        #         "OTEL_PYTHON_METER_PROVIDER"
-        #     ] = otel_python_meter_provider
-
-        # if ls_service_name is not None:
-        #     environ["LS_SERVICE_NAME"] = ls_service_name
