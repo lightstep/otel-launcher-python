@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from time import sleep
-from subprocess import Popen  # , PIPE
+from subprocess import Popen
 from shlex import split
 from os import environ
 
