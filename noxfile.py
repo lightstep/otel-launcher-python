@@ -6,17 +6,17 @@ def configuration(session):
     session.install(".")
     session.install("-r", "requirements-test.txt")
 
-    if session.posargs is None:
-        session.run("pytest", "-k", "TestConfiguration")
-    else:
+    if session.posargs:
         session.run("pytest", *session.posargs)
+    else:
+        session.run("pytest", "-k", "TestConfiguration")
 
 
 @session(python=["3.8"], reuse_venv=True)
 def example(session):
     session.install(".")
     session.install("-r", "requirements-test.txt")
-    session.run("pytest", "-k", "test_example")
+    session.run("pytest", "-k", "test_example", "-s")
 
 
 @session(python=["3.8"], reuse_venv=True)
@@ -39,5 +39,7 @@ def coverage(session):
         "--cov",
         "src/opentelemetry/launcher",
         "--cov-report",
-        "xml"
+        "xml",
+        "-k",
+        "TestConfiguration"
     )

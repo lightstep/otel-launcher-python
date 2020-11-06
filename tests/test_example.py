@@ -35,13 +35,13 @@ def test_example():
 
     try:
         server_process = Popen(
-            split(".nox/test-3-8/bin/python3 examples/server.py"),
+            split(".nox/example-3-8/bin/python3 examples/server.py"),
             start_new_session=True,
             env=environment,
         )
 
         client_process = Popen(
-            split(".nox/test-3-8/bin/python3 examples/client.py"),
+            split(".nox/example-3-8/bin/python3 examples/client.py"),
             start_new_session=True,
             env=environment
         )

@@ -51,13 +51,20 @@ class TestConfiguration(TestCase):
     def test_no_service_name(self, mock_otlp_metrics_exporter):
         with self.assertRaises(InvalidConfigurationError):
             with self.assertLogs(logger=_logger, level="ERROR") as log:
-                configure_opentelemetry()
+                # service_name is set here as None in order to override any
+                # possible LS_SERVICE_NAME environment variable that may be set
+                configure_opentelemetry(service_name=None)
                 self.assertIn("service name missing", log.output[0])
 
-    def test_no_token(self):
+    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
+    def test_no_token(self, mock_otlp_metrics_exporter):
         with self.assertRaises(InvalidConfigurationError):
             with self.assertLogs(logger=_logger, level="ERROR") as log:
-                configure_opentelemetry(service_name="service-123")
+                # access_token is set here as None in order to override any
+                # possible LS_ACCES_TOKEN environment variable that may be set
+                configure_opentelemetry(
+                    service_name="service-123", access_token=None
+                )
                 self.assertIn("token missing", log.output[0])
 
     @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
