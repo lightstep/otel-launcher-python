@@ -373,7 +373,7 @@ def configure_opentelemetry(
     )
 
     get_meter_provider().start_pipeline(
-        system_metrics.meter,
+        system_metrics.accumulator,
         lightstep_otlp_metrics_exporter,
         5,
     )
