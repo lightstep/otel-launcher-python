@@ -36,10 +36,7 @@ from opentelemetry.instrumentation.system_metrics import SystemMetrics
 from opentelemetry.launcher.metrics import LightstepOTLPMetricsExporter
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.launcher.version import __version__
-from opentelemetry.metrics import (
-    get_meter_provider,
-    set_meter_provider,
-)
+from opentelemetry.metrics import get_meter_provider, set_meter_provider
 from opentelemetry.propagators import set_global_textmap
 from opentelemetry.propagators.composite import CompositeHTTPPropagator
 from opentelemetry.sdk.metrics import MeterProvider
@@ -58,9 +55,7 @@ _env = Env()
 _logger = getLogger(__name__)
 
 _DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT = "ingest.lightstep.com:443"
-_DEFAULT_OTEL_EXPORTER_OTLP_METRIC_ENDPOINT = (
-    "ingest.lightstep.com:443"
-)
+_DEFAULT_OTEL_EXPORTER_OTLP_METRIC_ENDPOINT = "ingest.lightstep.com:443"
 
 _LS_ACCESS_TOKEN = _env.str("LS_ACCESS_TOKEN", None)
 _OTEL_EXPORTER_OTLP_SPAN_ENDPOINT = _env.str(
