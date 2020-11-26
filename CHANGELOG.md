@@ -1,5 +1,9 @@
 ## Unreleased
 
+## 0.16b0
+
+- Update dependencies to 0.16b0
+
 ## 0.15b0
 
 - Add configuration for Metrics Exporter
