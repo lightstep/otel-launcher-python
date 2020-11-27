@@ -1,8 +1,8 @@
 ## Unreleased
 
-## 0.16b0
+## 0.16b1
 
-- Update dependencies to 0.16b0
+- Update dependencies to 0.16b1
 
 ## 0.15b0
 
