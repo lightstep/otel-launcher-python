@@ -347,3 +347,15 @@ class TestConfiguration(TestCase):
                 "headers": (("lightstep-access-token", "a" * 104),),
             }
         )
+
+    @patch("opentelemetry.launcher.configuration.SystemMetrics")
+    def test_metrics_disabled(self, mock_system_metrics):
+
+        configure_opentelemetry(
+            service_name="service_name",
+            service_version="service_version",
+            access_token="a" * 104,
+            metrics_enabled=False,
+        )
+
+        self.assertFalse(mock_system_metrics.called)
