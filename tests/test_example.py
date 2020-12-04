@@ -17,7 +17,7 @@ from subprocess import Popen
 from shlex import split
 from os import environ
 
-from pytest import skip
+from pytest import skip, fail
 
 
 def test_example():
@@ -48,14 +48,9 @@ def test_example():
 
         sleep(15)
 
-        print()
-        print("Go to your metrics dashboard and check for exported metrics")
-        print("Are there exported metrics in your metrics dashboard (Y/N)?")
+    except Exception as error:
+        fail("Unexpected error raised: {}".format(error))
 
-        response = input()
-        assert (
-            response == "Y" or response == "y"
-        ), "No metrics exported to your metrics dashboard"
     finally:
         try:
             server_process.terminate()

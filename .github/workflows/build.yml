@@ -32,8 +32,8 @@ jobs:
         pip install .
         pip install nox
 
-    - name: Run configuration test
-      run: nox -s configuration-${{ matrix.python-version }}
+    - name: Run configuration and example tests
+      run: nox -s test-${{ matrix.python-version }}
 
     - name: Run coverage test
       if: matrix.python-version == 3.8
