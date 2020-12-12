@@ -345,7 +345,7 @@ def configure_opentelemetry(
 
     get_tracer_provider().resource = Resource(resource_attributes)
 
-    if log_level >= DEBUG:
+    if log_level <= DEBUG:
         get_tracer_provider().add_span_processor(
             BatchExportSpanProcessor(ConsoleSpanExporter())
         )
