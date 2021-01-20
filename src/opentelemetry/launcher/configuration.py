@@ -31,12 +31,16 @@ from environs import Env
 from grpc import ssl_channel_credentials
 
 from opentelemetry.baggage.propagation import BaggagePropagator
-from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
+from opentelemetry.instrumentation.distro import BaseDistro
 from opentelemetry.instrumentation.system_metrics import SystemMetrics
 from opentelemetry.launcher.metrics import LightstepOTLPMetricsExporter
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.launcher.version import __version__
-from opentelemetry.metrics import get_meter_provider, set_meter_provider
+from opentelemetry.metrics import (
+    get_meter,
+    get_meter_provider,
+    set_meter_provider,
+)
 from opentelemetry.propagators import set_global_textmap
 from opentelemetry.propagators.composite import CompositeHTTPPropagator
 from opentelemetry.sdk.metrics import MeterProvider
@@ -45,7 +49,7 @@ from opentelemetry.sdk.trace.export import (
     BatchExportSpanProcessor,
     ConsoleSpanExporter,
 )
-from opentelemetry.sdk.trace.propagation.b3_format import B3Format
+from opentelemetry.propagators.b3 import B3Format
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 from opentelemetry.trace.propagation.tracecontext import (
     TraceContextTextMapPropagator,
@@ -372,7 +376,7 @@ def configure_opentelemetry(
         )
 
         get_meter_provider().start_pipeline(
-            system_metrics.meter,
+            get_meter(__name__),
             lightstep_otlp_metrics_exporter,
             5,
         )
@@ -388,8 +392,8 @@ def _validate_service_name(service_name: Optional[str]):
     return service_name is not None
 
 
-class LightstepLauncherInstrumentor(BaseInstrumentor):
-    def _instrument(self, **kwargs):
+class LightstepLauncherDistro(BaseDistro):
+    def _configure(self, **kwargs):
         try:
             configure_opentelemetry(_auto_instrumented=True)
         except InvalidConfigurationError:
@@ -400,6 +404,3 @@ class LightstepLauncherInstrumentor(BaseInstrumentor):
                     "variables"
                 )
             )
-
-    def _uninstrument(self, **kwargs):
-        pass
