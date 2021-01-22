@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=too-many-branches
-
+from opentelemetry.sdk.metrics.export import ConsoleMetricsExporter
 from logging import (
     CRITICAL,
     DEBUG,
@@ -371,11 +371,11 @@ def configure_opentelemetry(
             headers=headers,
         )
 
-        meter = get_meter(__name__)
-        SystemMetrics(lightstep_otlp_metrics_exporter, system_metrics_config)
-
+        system_metrics = SystemMetrics(
+            lightstep_otlp_metrics_exporter, system_metrics_config
+        )
         get_meter_provider().start_pipeline(
-            meter,
+            system_metrics.accumulator,
             lightstep_otlp_metrics_exporter,
             5,
         )
