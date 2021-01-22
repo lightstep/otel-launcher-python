@@ -1,5 +1,13 @@
 ## Unreleased
 
+## 0.17b0
+
+- Updating dependencies to 0.17b0
+- Added `opentelemetry-propagator-b3` dependency
+- Client example updated to reflect that `RequestsInstrumentor`
+  needs to be instrumented after `configure_opentelemetry`, otherwise
+  the `MeterProvider` will already have been set.
+
 ## 0.15b0
 
 - Add configuration for Metrics Exporter
