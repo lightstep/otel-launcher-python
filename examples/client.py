@@ -5,8 +5,6 @@ from opentelemetry import baggage, trace
 from opentelemetry.launcher import configure_opentelemetry
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
-RequestsInstrumentor().instrument()
-
 
 # example of getting the current span
 def get_current_span():
@@ -56,6 +54,8 @@ configure_opentelemetry(
     service_version="1.2.3",  # optional
     log_level="DEBUG",  # optional
 )
+
+RequestsInstrumentor().instrument()
 
 app = App(trace.get_tracer(__name__))
 while True:
