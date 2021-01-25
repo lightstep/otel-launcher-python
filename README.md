@@ -117,6 +117,7 @@ This should also produce System Metrics that can be captured in the Lightstep Da
 |propagators                      |OTEL_PROPAGATORS|n|`b3`|
 |resource_attributes                  |OTEL_RESOURCE_ATTRIBUTES|n|`telemetry.sdk.language=python,telemetry.sdk.version=0.12b0`|
 |log_level                        |OTEL_LOG_LEVEL|n|`ERROR`|
+|metrics_enabled|LS_METRICS_ENABLED|n|`True`|
 
 The configuration option for `propagators` accepts a comma-separated string that will be interpreted as a list. For example, `a,b,c,d` will be interpreted as `["a", "b", "c", "d"]`.
 The configuration option for `resource_attributes` accepts a comma-separated string of `key=value` pairs that will be interpreted as a dictionary. For example, `a=1,b=2,c=3,d=4` will be interpreted as `{"a": 1, "b": 2, "c": 3, "d": 4}`.
