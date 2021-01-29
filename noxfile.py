@@ -6,13 +6,13 @@ def test(session):
     session.install(".")
     session.install("-r", "requirements-test.txt")
 
-    if session.posargs is None:
-        session.run("pytest", "tests")
-    else:
+    if session.posargs:
         session.run("pytest", *session.posargs)
+    else:
+        session.run("pytest")
 
 
-@session(python=["3.8"])
+@session(python=["3.8"], reuse_venv=True)
 def lint(session):
     session.install(".")
     session.install("-r", "requirements-test.txt")
@@ -22,7 +22,7 @@ def lint(session):
     session.run("pylint", "src")
 
 
-@session(python=["3.8"])
+@session(python=["3.8"], reuse_venv=True)
 def coverage(session):
     session.install(".")
     session.install("-r", "requirements-test.txt")
@@ -32,5 +32,7 @@ def coverage(session):
         "--cov",
         "src/opentelemetry/launcher",
         "--cov-report",
-        "xml"
+        "xml",
+        "-k",
+        "TestConfiguration"
     )

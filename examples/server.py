@@ -1,25 +1,37 @@
 #!/usr/bin/env python3
 
-from flask import Flask
+from logging import basicConfig, debug, DEBUG
+
+from flask import Flask, request
 from opentelemetry.launcher import configure_opentelemetry
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 
 
-PORT = 8000
-configure_opentelemetry(
-    service_name="server-456",
-    service_version="4.5.6",
-    log_level="DEBUG",  # optional
-)
-
-app = Flask(__name__)
-FlaskInstrumentor().instrument_app(app)
+basicConfig(format="\033[94mSERVER:\033[0m %(message)s", level=DEBUG)
 
 
-@app.route("/hello")
-def hello():
-    return "hello"
+def receive_requests():
+    configure_opentelemetry(
+        service_name="server_service_name",
+        service_version="server_version",  # optional
+    )
+
+    app = Flask(__name__)
+    FlaskInstrumentor().instrument_app(app)
+
+    @app.route("/shutdown")
+    def shutdown():
+        request.environ.get("werkzeug.server.shutdown")()
+        debug("Server shut down")
+        return "shutdown"
+
+    @app.route("/hello")
+    def hello():
+        debug("Hello, client!")
+        return "hello"
+
+    app.run(host="0.0.0.0", port=8000)
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=PORT)
+    receive_requests()

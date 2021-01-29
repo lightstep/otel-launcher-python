@@ -1,63 +1,63 @@
-import requests
+#!/usr/bin/env python3
+
 from time import sleep
 
-from opentelemetry import baggage, trace
+from requests import get
+from logging import basicConfig, debug, DEBUG
+
+from opentelemetry.baggage import set_baggage, get_baggage
+from opentelemetry.trace import get_tracer, get_current_span
 from opentelemetry.launcher import configure_opentelemetry
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
 
-# example of getting the current span
-def get_current_span():
-    span = trace.get_current_span()
-    print("current span: ", span)
+basicConfig(format="\033[95mCLIENT:\033[0m %(message)s", level=DEBUG)
 
 
-# example of utilizing baggage
-def set_baggage():
-    ctx = baggage.set_baggage("example", "value")
-    print("val: ", baggage.get_baggage("example", ctx))
+def send_requests():
+    RequestsInstrumentor().instrument()
 
+    configure_opentelemetry(
+        service_name="client_service_name",
+        service_version="client_version",  # optional
+    )
 
-class App:
-    def __init__(self, tracer):
-        self._tracer = tracer
+    tracer = get_tracer(__name__)
 
-    def _request(self, url):
-        with self._tracer.start_as_current_span(
-            "request to {}".format(url)
-        ) as span:
+    def request(url):
+        with tracer.start_as_current_span("request to {}".format(url)) as span:
             try:
-                requests.get(url)
-            except Exception as e:
+                get(url)
+            except Exception as error:
                 span.set_attribute("error", "true")
-                span.record_exception(e)
+                span.record_exception(error)
 
-    def send_requests(self):
-        get_current_span()
-        with self._tracer.start_as_current_span("foo"):
-            get_current_span()
-            self.add_span_attribute()
-            set_baggage()
-            with self._tracer.start_as_current_span("bar"):
-                self._request("http://localhost:8000/hello")
-                self._request("http://doesnotexist:8000")
-                print("Hello world from OpenTelemetry Python!")
+    attempts = 10
 
-    # example of adding an attribute to a span
-    def add_span_attribute(self):
-        with self._tracer.start_as_current_span("add-attribute") as span:
-            span.set_attribute("attr1", "valu1")
+    for attempt in range(attempts):
+        debug("Sending requests %s/%s", attempt + 1, attempts)
+
+        with tracer.start_as_current_span("foo"):
+            debug("Current span: %s", get_current_span())
+
+            with tracer.start_as_current_span("add-attribute") as span:
+                span.set_attribute("attr1", "valu1")
+                debug("Current span: %s", get_current_span())
+
+            debug(
+                "Baggage: %s",
+                get_baggage("example", set_baggage("example", "value"))
+            )
+
+            with tracer.start_as_current_span("bar"):
+                debug("Hello, server!")
+                request("http://localhost:8000/hello")
+                request("http://doesnotexist:8000")
+
+        sleep(1)
+
+    request("http://localhost:8000/shutdown")
 
 
-configure_opentelemetry(
-    service_name="service-123",
-    service_version="1.2.3",  # optional
-    log_level="DEBUG",  # optional
-)
-
-RequestsInstrumentor().instrument()
-
-app = App(trace.get_tracer(__name__))
-while True:
-    app.send_requests()
-    sleep(5)
+if __name__ == "__main__":
+    send_requests()
