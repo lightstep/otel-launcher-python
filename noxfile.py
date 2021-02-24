@@ -1,7 +1,11 @@
 from nox import session
 
 
+<<<<<<< HEAD
 @session(python=["3.6", "3.7", "3.8"], reuse_venv=True)
+=======
+@session(python=["3.5", "3.6", "3.7", "3.8"], reuse_venv=True)
+>>>>>>> Revert "Fix testing requirements"
 def test(session):
     session.install(".")
     session.install("-r", "requirements-test.txt")
