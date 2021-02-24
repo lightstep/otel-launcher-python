@@ -50,12 +50,12 @@ from opentelemetry.trace.propagation.tracecontext import (
 _env = Env()
 _logger = getLogger(__name__)
 
-_DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT = "ingest.lightstep.com:443"
+_DEFAULT_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "ingest.lightstep.com:443"
 
 _LS_ACCESS_TOKEN = _env.str("LS_ACCESS_TOKEN", None)
-_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT = _env.str(
-    "OTEL_EXPORTER_OTLP_SPAN_ENDPOINT",
-    _DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT,
+_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = _env.str(
+    "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+    _DEFAULT_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
 )
 _LS_SERVICE_NAME = _env.str("LS_SERVICE_NAME", None)
 _LS_SERVICE_VERSION = _env.str("LS_SERVICE_VERSION", None)
@@ -66,8 +66,8 @@ _OTEL_RESOURCE_ATTRIBUTES = _env.str(
     "telemetry.sdk.version={}".format(__version__),
 )
 _OTEL_LOG_LEVEL = _env.str("OTEL_LOG_LEVEL", "ERROR")
-_OTEL_EXPORTER_OTLP_SPAN_INSECURE = _env.bool(
-    "OTEL_EXPORTER_OTLP_SPAN_INSECURE", False
+_OTEL_EXPORTER_OTLP_TRACES_INSECURE = _env.bool(
+    "OTEL_EXPORTER_OTLP_TRACES_INSECURE", False
 )
 
 # FIXME Find a way to "import" this value from:
@@ -103,13 +103,13 @@ def _common_configuration(
 
 def configure_opentelemetry(
     access_token: str = _LS_ACCESS_TOKEN,
-    span_exporter_endpoint: str = _OTEL_EXPORTER_OTLP_SPAN_ENDPOINT,
+    span_exporter_endpoint: str = _OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
     service_name: str = _LS_SERVICE_NAME,
     service_version: str = _LS_SERVICE_VERSION,
     propagators: str = _OTEL_PROPAGATORS,
     resource_attributes: str = _OTEL_RESOURCE_ATTRIBUTES,
     log_level: str = _OTEL_LOG_LEVEL,
-    span_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
+    span_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_TRACES_INSECURE,
     _auto_instrumented: bool = False,
 ):
     # pylint: disable=too-many-locals
@@ -129,7 +129,7 @@ def configure_opentelemetry(
         access_token (str): LS_ACCESS_TOKEN, the access token used to
             authenticate with the Lightstep satellite. This configuration value
             is mandatory.
-        span_exporter_endpoint (str): OTEL_EXPORTER_OTLP_SPAN_ENDPOINT, the URL of the Lightstep
+        span_exporter_endpoint (str): OTEL_EXPORTER_OTLP_TRACES_ENDPOINT, the URL of the Lightstep
             satellite where the spans are to be exported. Defaults to
             `ingest.lightstep.com:443`.
         service_name (str): LS_SERVICE_NAME, the name of the service that is
@@ -158,7 +158,7 @@ def configure_opentelemetry(
 
             Defaults to `logging.ERROR`.
         span_exporter_insecure (bool):
-            OTEL_EXPORTER_OTLP_SPAN_INSECURE, a boolean value that indicates if
+            OTEL_EXPORTER_OTLP_TRACES_INSECURE, a boolean value that indicates if
             an insecure channel is to be used to send spans to the satellite.
             Defaults to `False`.
     """
@@ -232,12 +232,12 @@ def configure_opentelemetry(
         _logger.debug("%s: %s", key, value)
 
     if access_token is None:
-        if span_exporter_endpoint == _DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT:
+        if span_exporter_endpoint == _DEFAULT_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
             message = (
                 "Invalid configuration: token missing. "
                 "Must be set to send data to {}. "
                 "Set environment variable LS_ACCESS_TOKEN"
-            ).format(_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT)
+            ).format(_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT)
             if not _auto_instrumented:
                 message += " or call configure_opentelemetry with access_token defined"
             _logger.error(message)
