@@ -26,7 +26,6 @@ opentelemetry-exporter-otlp==1.0.0rc1
 opentelemetry-instrumentation==0.18b0
 opentelemetry-instrumentation-flask==0.18b1
 opentelemetry-instrumentation-requests==0.18b1
-opentelemetry-instrumentation-system-metrics==0.17b0
 opentelemetry-instrumentation-wsgi==0.18b1
 opentelemetry-propagator-b3==1.0.0rc1
 opentelemetry-proto==1.0.0rc1

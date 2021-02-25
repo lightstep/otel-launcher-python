@@ -32,17 +32,10 @@ from grpc import ssl_channel_credentials
 
 from opentelemetry.baggage.propagation import BaggagePropagator
 from opentelemetry.instrumentation.distro import BaseDistro
-from opentelemetry.instrumentation.system_metrics import SystemMetrics
-from opentelemetry.launcher.metrics import LightstepOTLPMetricsExporter
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.launcher.version import __version__
-from opentelemetry.metrics import (
-    get_meter_provider,
-    set_meter_provider,
-)
 from opentelemetry.propagators import set_global_textmap
 from opentelemetry.propagators.composite import CompositeHTTPPropagator
-from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.trace import Resource, TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchExportSpanProcessor,
@@ -352,34 +345,6 @@ def configure_opentelemetry(
         get_tracer_provider().add_span_processor(
             BatchExportSpanProcessor(ConsoleSpanExporter())
         )
-
-    if metrics_enabled:
-
-        _logger.debug("configuring metrics")
-
-        credentials = _common_configuration(
-            set_meter_provider,
-            MeterProvider,
-            "OTEL_PYTHON_METER_PROVIDER",
-            metric_exporter_insecure,
-        )
-
-        lightstep_otlp_metrics_exporter = LightstepOTLPMetricsExporter(
-            endpoint=metric_exporter_endpoint,
-            credentials=credentials,
-            headers=headers,
-        )
-
-        system_metrics = SystemMetrics(
-            lightstep_otlp_metrics_exporter, system_metrics_config
-        )
-        get_meter_provider().start_pipeline(
-            system_metrics.accumulator,
-            lightstep_otlp_metrics_exporter,
-            5,
-        )
-
-        get_meter_provider().resource = Resource(resource_attributes)
 
 
 def _validate_token(token: str):
