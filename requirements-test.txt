@@ -11,9 +11,15 @@ Flask==1.1.2
 googleapis-common-protos==1.52.0
 grpcio==1.35.0
 idna==2.10
+<<<<<<< HEAD
 immutables==0.15
 importlib-metadata==3.7.0
 iniconfig==1.1.1
+=======
+ipdb==0.13.4
+ipython==7.16.1
+ipython-genutils==0.2.0
+>>>>>>> Fixing supported version
 itsdangerous==1.1.0
 Jinja2==2.11.3
 MarkupSafe==1.1.1

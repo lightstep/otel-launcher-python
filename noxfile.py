@@ -1,11 +1,7 @@
 from nox import session
 
 
-<<<<<<< HEAD
 @session(python=["3.6", "3.7", "3.8"], reuse_venv=True)
-=======
-@session(python=["3.5", "3.6", "3.7", "3.8"], reuse_venv=True)
->>>>>>> Revert "Fix testing requirements"
 def test(session):
     # FIXME Investigate further if this is the right approach.
     session.install("-vvv", ".", "--use-deprecated=legacy-resolver")
