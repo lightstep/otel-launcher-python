@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-aiocontextvars==0.2.2
+iocontextvars==0.2.2
 asgiref==3.3.1
 attrs==20.3.0
 backoff==1.10.0
@@ -44,10 +43,3 @@ urllib3==1.26.3
 Werkzeug==1.0.1
 wrapt==1.12.1
 zipp==3.4.0
-=======
-pytest==5.4.3
-pytest-cov==2.9.0
-ipdb
-opentelemetry-instrumentation-requests
-opentelemetry-instrumentation-flask
->>>>>>> Revert "Fix testing requirements"
