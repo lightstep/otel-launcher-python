@@ -3,7 +3,8 @@ from nox import session
 
 @session(python=["3.5", "3.6", "3.7", "3.8"], reuse_venv=True)
 def test(session):
-    session.install(".")
+    # FIXME Investigate further if this is the right approach.
+    session.install("-vvv", ".", "--use-deprecated=legacy-resolver")
     session.install("-r", "requirements-test.txt")
 
     if session.posargs:
