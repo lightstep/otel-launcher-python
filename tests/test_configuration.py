@@ -15,7 +15,6 @@
 from unittest import TestCase
 from unittest.mock import patch, ANY
 from time import sleep
-from sys import version_info
 from logging import DEBUG, WARNING
 
 from opentelemetry.launcher.configuration import (
@@ -93,12 +92,7 @@ class TestConfiguration(TestCase):
         # export method mock to be called.
         sleep(0.002)
 
-        # 3.5 does not include the assert_called method.
-        if (version_info.major, version_info.minor) == (3, 5):
-            with self.assertRaises(AssertionError):
-                mock_otlp_span_exporter.assert_not_called()
-        else:
-            mock_otlp_span_exporter.assert_called()
+        mock_otlp_span_exporter.assert_called()
 
     @patch("opentelemetry.launcher.configuration.LightstepOTLPSpanExporter")
     def test_headers(self, mock_otlp_span_exporter):
