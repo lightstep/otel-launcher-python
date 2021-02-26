@@ -283,7 +283,7 @@ class TestConfiguration(TestCase):
             access_token="a" * 104,
             resource_attributes="{}=other_hostname".format(
                 _ATTRIBUTE_HOST_NAME
-            )
+            ),
         )
 
         mock_resource.assert_called_with(

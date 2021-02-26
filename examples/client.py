@@ -46,7 +46,7 @@ def send_requests():
 
             debug(
                 "Baggage: %s",
-                get_baggage("example", set_baggage("example", "value"))
+                get_baggage("example", set_baggage("example", "value")),
             )
 
             with tracer.start_as_current_span("bar"):

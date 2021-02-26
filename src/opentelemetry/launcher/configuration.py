@@ -35,13 +35,13 @@ from opentelemetry.instrumentation.distro import BaseDistro
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.launcher.version import __version__
 from opentelemetry.propagators import set_global_textmap
+from opentelemetry.propagators.b3 import B3Format
 from opentelemetry.propagators.composite import CompositeHTTPPropagator
 from opentelemetry.sdk.trace import Resource, TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchExportSpanProcessor,
     ConsoleSpanExporter,
 )
-from opentelemetry.propagators.b3 import B3Format
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 from opentelemetry.trace.propagation.tracecontext import (
     TraceContextTextMapPropagator,
@@ -121,8 +121,6 @@ def configure_opentelemetry(
     log_level: str = _OTEL_LOG_LEVEL,
     span_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
     metric_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_METRIC_INSECURE,
-    system_metrics_config: dict = None,
-    metrics_enabled: bool = _LS_METRICS_ENABLED,
     _auto_instrumented: bool = False,
 ):
     # pylint: disable=too-many-locals
