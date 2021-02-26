@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Removing metrics configuration
+
 ## 0.17b0
 
 - Updating dependencies to 0.17b0
