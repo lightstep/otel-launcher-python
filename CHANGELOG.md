@@ -3,7 +3,6 @@
 - Removing metrics configuration since this feature is not part of trace GA
 - Removing support for 3.5
 
-
 ## 0.17b0
 
 - Updating dependencies to 0.17b0
