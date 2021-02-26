@@ -113,14 +113,12 @@ def _common_configuration(
 def configure_opentelemetry(
     access_token: str = _LS_ACCESS_TOKEN,
     span_exporter_endpoint: str = _OTEL_EXPORTER_OTLP_SPAN_ENDPOINT,
-    metric_exporter_endpoint: str = _OTEL_EXPORTER_OTLP_METRIC_ENDPOINT,
     service_name: str = _LS_SERVICE_NAME,
     service_version: str = _LS_SERVICE_VERSION,
     propagators: str = _OTEL_PROPAGATORS,
     resource_attributes: str = _OTEL_RESOURCE_ATTRIBUTES,
     log_level: str = _OTEL_LOG_LEVEL,
     span_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
-    metric_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_METRIC_INSECURE,
     _auto_instrumented: bool = False,
 ):
     # pylint: disable=too-many-locals
@@ -143,9 +141,6 @@ def configure_opentelemetry(
         span_exporter_endpoint (str): OTEL_EXPORTER_OTLP_SPAN_ENDPOINT, the URL of the Lightstep
             satellite where the spans are to be exported. Defaults to
             `ingest.lightstep.com:443`.
-        metric_exporter_endpoint (str): OTEL_EXPORTER_OTLP_METRIC_ENDPOINT, the URL of the metrics collector
-            where the metrics are to be exported. Defaults to
-            `ingest.lightstep.com:443/metrics`.
         service_name (str): LS_SERVICE_NAME, the name of the service that is
             used along with the access token to send spans to the Lighstep
             satellite. This configuration value is mandatory.
@@ -175,12 +170,6 @@ def configure_opentelemetry(
             OTEL_EXPORTER_OTLP_SPAN_INSECURE, a boolean value that indicates if
             an insecure channel is to be used to send spans to the satellite.
             Defaults to `False`.
-        metric_exporter_insecure (bool):
-            OTEL_EXPORTER_OTLP_METRIC_INSECURE, a boolean value that indicates
-            if an insecure channel is to be used to send spans to the
-            satellite. Defaults to `False`.
-        system_metrics_config (dict):
-            Configuration for the SystemMetrics instrumentation
     """
 
     log_levels = {
@@ -237,13 +226,11 @@ def configure_opentelemetry(
     logged_attributes = {
         "access_token": access_token,
         "span_exporter_endpoint": span_exporter_endpoint,
-        "metric_exporter_endpoint": metric_exporter_endpoint,
         "service_name": service_name,
         "propagators": propagators,
         "resource_attributes": resource_attributes,
         "log_level": getLevelName(log_level),
         "span_exporter_insecure": span_exporter_insecure,
-        "metric_exporter_insecure": metric_exporter_insecure,
     }
 
     if service_version is not None:
@@ -304,8 +291,6 @@ def configure_opentelemetry(
         span_exporter_insecure,
     )
 
-    # FIXME Do the same for metrics when the OTLPMetricsExporter is in
-    # OpenTelemetry.
     get_tracer_provider().add_span_processor(
         BatchExportSpanProcessor(
             LightstepOTLPSpanExporter(
