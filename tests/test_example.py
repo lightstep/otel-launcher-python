@@ -30,7 +30,7 @@ def test_example():
 
     environment = {
         "OTEL_PYTHON_METER_PROVIDER": "sdk_meter_provider",
-        "LS_ACCESS_TOKEN": environ.get("LS_ACCESS_TOKEN")
+        "LS_ACCESS_TOKEN": environ.get("LS_ACCESS_TOKEN"),
     }
 
     try:
@@ -43,7 +43,7 @@ def test_example():
         client_process = Popen(
             split(".nox/example-3-8/bin/python3 examples/client.py"),
             start_new_session=True,
-            env=environment
+            env=environment,
         )
 
         sleep(15)

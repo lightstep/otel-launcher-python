@@ -13,9 +13,8 @@
 # limitations under the License.
 
 from unittest import TestCase
-from unittest.mock import patch, ANY, Mock
+from unittest.mock import patch, ANY
 from time import sleep
-from sys import version_info
 from logging import DEBUG, WARNING
 
 from opentelemetry.launcher.configuration import (
@@ -30,8 +29,6 @@ from opentelemetry.propagators import get_global_textmap
 from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.metrics import get_meter_provider, set_meter_provider
 
 
 class TestConfiguration(TestCase):
@@ -40,15 +37,12 @@ class TestConfiguration(TestCase):
 
     def tearDown(self):
         get_tracer_provider().shutdown()
-        get_meter_provider().shutdown()
 
     @classmethod
     def setUpClass(cls):
         set_tracer_provider(TracerProvider())
-        set_meter_provider(MeterProvider())
 
-    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
-    def test_no_service_name(self, mock_otlp_metrics_exporter):
+    def test_no_service_name(self):
         with self.assertRaises(InvalidConfigurationError):
             with self.assertLogs(logger=_logger, level="ERROR") as log:
                 # service_name is set here as None in order to override any
@@ -56,8 +50,7 @@ class TestConfiguration(TestCase):
                 configure_opentelemetry(service_name=None)
                 self.assertIn("service name missing", log.output[0])
 
-    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
-    def test_no_token(self, mock_otlp_metrics_exporter):
+    def test_no_token(self):
         with self.assertRaises(InvalidConfigurationError):
             with self.assertLogs(logger=_logger, level="ERROR") as log:
                 # access_token is set here as None in order to override any
@@ -67,8 +60,7 @@ class TestConfiguration(TestCase):
                 )
                 self.assertIn("token missing", log.output[0])
 
-    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
-    def test_no_token_other_endpoint(self, mock_otlp_metrics_exporter):
+    def test_no_token_other_endpoint(self):
         # no exception is thrown
         configure_opentelemetry(
             service_name="service-123",
@@ -83,11 +75,8 @@ class TestConfiguration(TestCase):
         "opentelemetry.launcher.configuration.BatchExportSpanProcessor",
         new=MockBatchExportSpanProcessor,
     )
-    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
     @patch("opentelemetry.launcher.tracer.LightstepOTLPSpanExporter.export")
-    def test_only_service_name_and_token(
-        self, mock_otlp_span_exporter, mock_otlp_metrics_exporter
-    ):
+    def test_only_service_name_and_token(self, mock_otlp_span_exporter):
 
         configure_opentelemetry(
             service_name="service_123", access_token="a" * 104
@@ -103,18 +92,10 @@ class TestConfiguration(TestCase):
         # export method mock to be called.
         sleep(0.002)
 
-        # 3.5 does not include the assert_called method.
-        if (version_info.major, version_info.minor) == (3, 5):
-            with self.assertRaises(AssertionError):
-                mock_otlp_span_exporter.assert_not_called()
-        else:
-            mock_otlp_span_exporter.assert_called()
+        mock_otlp_span_exporter.assert_called()
 
     @patch("opentelemetry.launcher.configuration.LightstepOTLPSpanExporter")
-    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
-    def test_headers(
-        self, mock_otlp_metrics_exporter, mock_otlp_span_exporter
-    ):
+    def test_headers(self, mock_otlp_span_exporter):
 
         configure_opentelemetry(
             service_name="service_123", access_token="a" * 104
@@ -126,8 +107,7 @@ class TestConfiguration(TestCase):
             headers=(("lightstep-access-token", "a" * 104),),
         )
 
-    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
-    def test_log_level(self, mock_otlp_metrics_exporter):
+    def test_log_level(self):
 
         with self.assertLogs(logger=_logger, level=DEBUG):
             configure_opentelemetry(
@@ -159,12 +139,9 @@ class TestConfiguration(TestCase):
                     log_level="WaRNiNG",
                 )
 
-    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
     @patch("opentelemetry.launcher.configuration.gethostname")
     @patch("opentelemetry.launcher.configuration.Resource")
-    def test_resource_attributes(
-        self, mock_resource, mock_gethostname, mock_otlp_metrics_exporter
-    ):
+    def test_resource_attributes(self, mock_resource, mock_gethostname):
         mock_gethostname.return_value = "the_hostname"
 
         configure_opentelemetry(
@@ -183,12 +160,9 @@ class TestConfiguration(TestCase):
             }
         )
 
-    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
     @patch("opentelemetry.launcher.configuration.gethostname")
     @patch("opentelemetry.launcher.configuration.Resource")
-    def test_service_version(
-        self, mock_resource, mock_gethostname, mock_otlp_metrics_exporter
-    ):
+    def test_service_version(self, mock_resource, mock_gethostname):
         mock_gethostname.return_value = "the_hostname"
 
         configure_opentelemetry(
@@ -205,8 +179,7 @@ class TestConfiguration(TestCase):
             }
         )
 
-    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
-    def test_propagation(self, mock_otlp_metrics_exporter):
+    def test_propagation(self):
         configure_opentelemetry(
             service_name="service_name",
             service_version="service_version",
@@ -224,8 +197,7 @@ class TestConfiguration(TestCase):
             )
             self.assertIsNone(carrier.get("baggage"))
 
-    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
-    def test_propagation_baggage(self, mock_otlp_metrics_exporter):
+    def test_propagation_baggage(self):
         configure_opentelemetry(
             service_name="service_name",
             service_version="service_version",
@@ -241,8 +213,7 @@ class TestConfiguration(TestCase):
             self.assertIsNone(carrier.get("x-b3-traceid"))
             self.assertEqual(carrier.get("baggage"), "abc=def")
 
-    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
-    def test_propagation_tracecontext(self, mock_otlp_metrics_exporter):
+    def test_propagation_tracecontext(self):
         configure_opentelemetry(
             service_name="service_name",
             service_version="service_version",
@@ -262,8 +233,7 @@ class TestConfiguration(TestCase):
                 carrier.get("traceparent"),
             )
 
-    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
-    def test_propagation_multiple(self, mock_otlp_metrics_exporter):
+    def test_propagation_multiple(self):
         configure_opentelemetry(
             service_name="service_name",
             service_version="service_version",
@@ -288,12 +258,9 @@ class TestConfiguration(TestCase):
                 carrier.get("traceparent"),
             )
 
-    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
     @patch("opentelemetry.launcher.configuration.gethostname")
     @patch("opentelemetry.launcher.configuration.Resource")
-    def test_hostname(
-        self, mock_resource, mock_gethostname, mock_otlp_metrics_exporter
-    ):
+    def test_hostname(self, mock_resource, mock_gethostname):
 
         mock_gethostname.return_value = "the_hostname"
 
@@ -316,7 +283,7 @@ class TestConfiguration(TestCase):
             access_token="a" * 104,
             resource_attributes="{}=other_hostname".format(
                 _ATTRIBUTE_HOST_NAME
-            )
+            ),
         )
 
         mock_resource.assert_called_with(
@@ -325,44 +292,3 @@ class TestConfiguration(TestCase):
                 _ATTRIBUTE_HOST_NAME: "other_hostname",
             }
         )
-
-    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricsExporter")
-    @patch("opentelemetry.launcher.configuration.LightstepOTLPSpanExporter")
-    @patch("opentelemetry.launcher.configuration._common_configuration")
-    def test_metric_configuration(
-        self,
-        mock_common_configuration,
-        mock_otlp_span_exporter,
-        mock_otlp_metrics_exporter,
-    ):
-
-        credentials_mock = Mock()
-        mock_common_configuration.return_value = credentials_mock
-
-        configure_opentelemetry(
-            service_name="service_name",
-            service_version="service_version",
-            access_token="a" * 104,
-            metric_exporter_endpoint="metric_exporter_endpoint",
-            system_metrics_config={"a": "b", "c": "d"}
-        )
-
-        mock_otlp_metrics_exporter.assert_called_with(
-            **{
-                "endpoint": "metric_exporter_endpoint",
-                "credentials": credentials_mock,
-                "headers": (("lightstep-access-token", "a" * 104),),
-            }
-        )
-
-    @patch("opentelemetry.launcher.configuration.SystemMetrics")
-    def test_metrics_disabled(self, mock_system_metrics):
-
-        configure_opentelemetry(
-            service_name="service_name",
-            service_version="service_version",
-            access_token="a" * 104,
-            metrics_enabled=False,
-        )
-
-        self.assertFalse(mock_system_metrics.called)

@@ -1,7 +1,7 @@
 from nox import session
 
 
-@session(python=["3.5", "3.6", "3.7", "3.8"], reuse_venv=True)
+@session(python=["3.6", "3.7", "3.8"], reuse_venv=True)
 def test(session):
     session.install(".")
     session.install("-r", "requirements-test.txt")
@@ -34,5 +34,5 @@ def coverage(session):
         "--cov-report",
         "xml",
         "-k",
-        "TestConfiguration"
+        "TestConfiguration",
     )

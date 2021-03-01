@@ -32,23 +32,16 @@ from grpc import ssl_channel_credentials
 
 from opentelemetry.baggage.propagation import BaggagePropagator
 from opentelemetry.instrumentation.distro import BaseDistro
-from opentelemetry.instrumentation.system_metrics import SystemMetrics
-from opentelemetry.launcher.metrics import LightstepOTLPMetricsExporter
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.launcher.version import __version__
-from opentelemetry.metrics import (
-    get_meter_provider,
-    set_meter_provider,
-)
 from opentelemetry.propagators import set_global_textmap
+from opentelemetry.propagators.b3 import B3Format
 from opentelemetry.propagators.composite import CompositeHTTPPropagator
-from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.trace import Resource, TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchExportSpanProcessor,
     ConsoleSpanExporter,
 )
-from opentelemetry.propagators.b3 import B3Format
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 from opentelemetry.trace.propagation.tracecontext import (
     TraceContextTextMapPropagator,
@@ -58,20 +51,14 @@ _env = Env()
 _logger = getLogger(__name__)
 
 _DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT = "ingest.lightstep.com:443"
-_DEFAULT_OTEL_EXPORTER_OTLP_METRIC_ENDPOINT = "ingest.lightstep.com:443"
 
 _LS_ACCESS_TOKEN = _env.str("LS_ACCESS_TOKEN", None)
 _OTEL_EXPORTER_OTLP_SPAN_ENDPOINT = _env.str(
     "OTEL_EXPORTER_OTLP_SPAN_ENDPOINT",
     _DEFAULT_OTEL_EXPORTER_OTLP_SPAN_ENDPOINT,
 )
-_OTEL_EXPORTER_OTLP_METRIC_ENDPOINT = _env.str(
-    "OTEL_EXPORTER_OTLP_METRIC_ENDPOINT",
-    _DEFAULT_OTEL_EXPORTER_OTLP_METRIC_ENDPOINT,
-)
 _LS_SERVICE_NAME = _env.str("LS_SERVICE_NAME", None)
 _LS_SERVICE_VERSION = _env.str("LS_SERVICE_VERSION", None)
-_LS_METRICS_ENABLED = _env.bool("LS_METRICS_ENABLED", True)
 _OTEL_PROPAGATORS = _env.str("OTEL_PROPAGATORS", "b3")
 _OTEL_RESOURCE_ATTRIBUTES = _env.str(
     "OTEL_RESOURCE_ATTRIBUTES",
@@ -81,9 +68,6 @@ _OTEL_RESOURCE_ATTRIBUTES = _env.str(
 _OTEL_LOG_LEVEL = _env.str("OTEL_LOG_LEVEL", "ERROR")
 _OTEL_EXPORTER_OTLP_SPAN_INSECURE = _env.bool(
     "OTEL_EXPORTER_OTLP_SPAN_INSECURE", False
-)
-_OTEL_EXPORTER_OTLP_METRIC_INSECURE = _env.bool(
-    "OTEL_EXPORTER_OTLP_METRIC_INSECURE", False
 )
 
 # FIXME Find a way to "import" this value from:
@@ -120,16 +104,12 @@ def _common_configuration(
 def configure_opentelemetry(
     access_token: str = _LS_ACCESS_TOKEN,
     span_exporter_endpoint: str = _OTEL_EXPORTER_OTLP_SPAN_ENDPOINT,
-    metric_exporter_endpoint: str = _OTEL_EXPORTER_OTLP_METRIC_ENDPOINT,
     service_name: str = _LS_SERVICE_NAME,
     service_version: str = _LS_SERVICE_VERSION,
     propagators: str = _OTEL_PROPAGATORS,
     resource_attributes: str = _OTEL_RESOURCE_ATTRIBUTES,
     log_level: str = _OTEL_LOG_LEVEL,
     span_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_SPAN_INSECURE,
-    metric_exporter_insecure: bool = _OTEL_EXPORTER_OTLP_METRIC_INSECURE,
-    system_metrics_config: dict = None,
-    metrics_enabled: bool = _LS_METRICS_ENABLED,
     _auto_instrumented: bool = False,
 ):
     # pylint: disable=too-many-locals
@@ -152,9 +132,6 @@ def configure_opentelemetry(
         span_exporter_endpoint (str): OTEL_EXPORTER_OTLP_SPAN_ENDPOINT, the URL of the Lightstep
             satellite where the spans are to be exported. Defaults to
             `ingest.lightstep.com:443`.
-        metric_exporter_endpoint (str): OTEL_EXPORTER_OTLP_METRIC_ENDPOINT, the URL of the metrics collector
-            where the metrics are to be exported. Defaults to
-            `ingest.lightstep.com:443/metrics`.
         service_name (str): LS_SERVICE_NAME, the name of the service that is
             used along with the access token to send spans to the Lighstep
             satellite. This configuration value is mandatory.
@@ -184,12 +161,6 @@ def configure_opentelemetry(
             OTEL_EXPORTER_OTLP_SPAN_INSECURE, a boolean value that indicates if
             an insecure channel is to be used to send spans to the satellite.
             Defaults to `False`.
-        metric_exporter_insecure (bool):
-            OTEL_EXPORTER_OTLP_METRIC_INSECURE, a boolean value that indicates
-            if an insecure channel is to be used to send spans to the
-            satellite. Defaults to `False`.
-        system_metrics_config (dict):
-            Configuration for the SystemMetrics instrumentation
     """
 
     log_levels = {
@@ -246,13 +217,11 @@ def configure_opentelemetry(
     logged_attributes = {
         "access_token": access_token,
         "span_exporter_endpoint": span_exporter_endpoint,
-        "metric_exporter_endpoint": metric_exporter_endpoint,
         "service_name": service_name,
         "propagators": propagators,
         "resource_attributes": resource_attributes,
         "log_level": getLevelName(log_level),
         "span_exporter_insecure": span_exporter_insecure,
-        "metric_exporter_insecure": metric_exporter_insecure,
     }
 
     if service_version is not None:
@@ -313,8 +282,6 @@ def configure_opentelemetry(
         span_exporter_insecure,
     )
 
-    # FIXME Do the same for metrics when the OTLPMetricsExporter is in
-    # OpenTelemetry.
     get_tracer_provider().add_span_processor(
         BatchExportSpanProcessor(
             LightstepOTLPSpanExporter(
@@ -352,34 +319,6 @@ def configure_opentelemetry(
         get_tracer_provider().add_span_processor(
             BatchExportSpanProcessor(ConsoleSpanExporter())
         )
-
-    if metrics_enabled:
-
-        _logger.debug("configuring metrics")
-
-        credentials = _common_configuration(
-            set_meter_provider,
-            MeterProvider,
-            "OTEL_PYTHON_METER_PROVIDER",
-            metric_exporter_insecure,
-        )
-
-        lightstep_otlp_metrics_exporter = LightstepOTLPMetricsExporter(
-            endpoint=metric_exporter_endpoint,
-            credentials=credentials,
-            headers=headers,
-        )
-
-        system_metrics = SystemMetrics(
-            lightstep_otlp_metrics_exporter, system_metrics_config
-        )
-        get_meter_provider().start_pipeline(
-            system_metrics.accumulator,
-            lightstep_otlp_metrics_exporter,
-            5,
-        )
-
-        get_meter_provider().resource = Resource(resource_attributes)
 
 
 def _validate_token(token: str):
