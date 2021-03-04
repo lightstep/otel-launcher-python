@@ -59,8 +59,8 @@ _OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = _env.str(
     # environment variable when appropriate.
     _env.str(
         "OTEL_EXPORTER_OTLP_SPAN_ENDPOINT",
-        _DEFAULT_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
-    )
+        _DEFAULT_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
+    ),
 )
 _LS_SERVICE_NAME = _env.str("LS_SERVICE_NAME", None)
 _LS_SERVICE_VERSION = _env.str("LS_SERVICE_VERSION", None)
@@ -237,7 +237,10 @@ def configure_opentelemetry(
         _logger.debug("%s: %s", key, value)
 
     if access_token is None:
-        if span_exporter_endpoint == _DEFAULT_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
+        if (
+            span_exporter_endpoint
+            == _DEFAULT_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+        ):
             message = (
                 "Invalid configuration: token missing. "
                 "Must be set to send data to {}. "
