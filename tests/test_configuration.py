@@ -16,6 +16,8 @@ from unittest import TestCase
 from unittest.mock import patch, ANY
 from time import sleep
 from logging import DEBUG, WARNING
+from importlib import reload
+from os import environ
 
 from opentelemetry.launcher.configuration import (
     configure_opentelemetry,
@@ -292,3 +294,94 @@ class TestConfiguration(TestCase):
                 _ATTRIBUTE_HOST_NAME: "other_hostname",
             }
         )
+
+    def test_backup_for_traces_endpoint(self):
+        # This is needed because this function calls reload. Not saving the
+        # value for these variables here can cause subsequent tests to fail.
+        original_configure_opentelemetry = configure_opentelemetry
+        original__logger = _logger
+        original_invalid_configuration_error = InvalidConfigurationError
+        original_attribute_host_name = _ATTRIBUTE_HOST_NAME
+
+        from opentelemetry.launcher import configuration
+
+        try:
+            reload(configuration)
+
+            self.assertEqual(
+                configuration._OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
+                "ingest.lightstep.com:443",
+            )
+
+            with patch.dict(
+                environ,
+                {"OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "traces_endpoint"}
+            ):
+
+                reload(configuration)
+
+                self.assertEqual(
+                    configuration._OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
+                    "traces_endpoint",
+                )
+
+            with patch.dict(
+                environ,
+                {
+                    "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "traces_endpoint",
+                    "OTEL_EXPORTER_OTLP_SPAN_ENDPOINT": "span_endpoint",
+                }
+            ):
+
+                reload(configuration)
+
+                self.assertEqual(
+                    configuration._OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
+                    "traces_endpoint",
+                )
+
+            with patch.dict(
+                environ,
+                {
+                    "OTEL_EXPORTER_OTLP_SPAN_ENDPOINT": "span_endpoint",
+                }
+            ):
+
+                reload(configuration)
+
+                self.assertEqual(
+                    configuration._OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
+                    "span_endpoint",
+                )
+
+        finally:
+            # This is needed because this function calls reload(configuration).
+            # When that happens, the symbols from configuration no longer match
+            # the ones previously imported in:
+            # from opentelemetry.launcher.configuration import (
+            #     configure_opentelemetry,
+            #     _logger,
+            #     InvalidConfigurationError,
+            #     _ATTRIBUTE_HOST_NAME,
+            # )
+            # This means that when an InvalidConfigurationError is raised from
+            # code in the configuration module when running a subsequent test
+            # the InvalidConfigurationError that is raised is not the same
+            # InvalidConfigurationError that was imported previously in this
+            # module. That causes assertRaises to get a different exception and
+            # fails, because it expected InvalidConfigurationError (imported
+            # from this module) but received InvalidConfigurationError (new
+            # class from the reloaded configuration module).
+
+            configuration.configure_opentelemetry = (
+                original_configure_opentelemetry
+            )
+            configuration._logger = (
+                original__logger
+            )
+            configuration.InvalidConfigurationError = (
+                original_invalid_configuration_error
+            )
+            configuration._ATTRIBUTE_HOST_NAME = (
+                original_attribute_host_name
+            )

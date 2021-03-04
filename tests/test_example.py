@@ -28,10 +28,7 @@ def test_example():
             "set again and rerun"
         )
 
-    environment = {
-        "OTEL_PYTHON_METER_PROVIDER": "sdk_meter_provider",
-        "LS_ACCESS_TOKEN": environ.get("LS_ACCESS_TOKEN"),
-    }
+    environment = {"LS_ACCESS_TOKEN": environ.get("LS_ACCESS_TOKEN")}
 
     try:
         server_process = Popen(
