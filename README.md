@@ -104,14 +104,14 @@ This should produce spans that can be captured in the Lightstep Explorer.
 
 |Config|Env Variable|Required|Default|
 |------|------------|--------|-------|
-|service_name                     |LS_SERVICE_NAME|y|-|
-|service_version                  |LS_SERVICE_VERSION|n|`None`|
-|access_token                     |LS_ACCESS_TOKEN|n|`None`|
-|span_exporter_endpoint                    |OTEL_EXPORTER_OTLP_SPAN_ENDPOINT|n|`ingest.lightstep.com:443`|
-|span_exporter_insecure  |OTEL_EXPORTER_OTLP_SPAN_INSECURE|n|`False`|
-|propagators                      |OTEL_PROPAGATORS|n|`b3`|
-|resource_attributes                  |OTEL_RESOURCE_ATTRIBUTES|n|`telemetry.sdk.language=python,telemetry.sdk.version=0.12b0`|
-|log_level                        |OTEL_LOG_LEVEL|n|`ERROR`|
+|service_name|LS_SERVICE_NAME|y|-|
+|service_version|LS_SERVICE_VERSION|n|`None`|
+|access_token|LS_ACCESS_TOKEN|n|`None`|
+|span_exporter_endpoint|OTEL_EXPORTER_OTLP_TRACES_ENDPOINT|n|`ingest.lightstep.com:443`|
+|span_exporter_insecure|OTEL_EXPORTER_OTLP_TRACES_INSECURE|n|`False`|
+|propagators|OTEL_PROPAGATORS|n|`b3`|
+|resource_attributes|OTEL_RESOURCE_ATTRIBUTES|n|`telemetry.sdk.language=python,telemetry.sdk.version=0.12b0`|
+|log_level|OTEL_LOG_LEVEL|n|`ERROR`|
 
 The configuration option for `propagators` accepts a comma-separated string that will be interpreted as a list. For example, `a,b,c,d` will be interpreted as `["a", "b", "c", "d"]`.
 The configuration option for `resource_attributes` accepts a comma-separated string of `key=value` pairs that will be interpreted as a dictionary. For example, `a=1,b=2,c=3,d=4` will be interpreted as `{"a": 1, "b": 2, "c": 3, "d": 4}`.
