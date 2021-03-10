@@ -74,6 +74,7 @@ Once that is done, clone the `opentelemetry-python` repo to get the example code
 
 ```bash
 git clone git@github.com:open-telemetry/opentelemetry-python.git
+git checkout v1.0.0rc1
 cd opentelemetry-python
 ```
 

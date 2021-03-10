@@ -1,5 +1,11 @@
 ## Unreleased
 
+## 1.0.0rc2
+
+- Releasing this to tag the right commit
+
+## 1.0.0rc1
+
 - Removing metrics configuration since this feature is not part of trace GA
 - Removing support for 3.5
 
