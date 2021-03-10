@@ -10,6 +10,8 @@ Once all the changes for a release have been merged to main, ensure the followin
 
 Publishing to [pypi](https://pypi.org/project/opentelemetry-launcher/) is automated via GitHub actions. Once a tag is pushed to the repo, a new GitHub Release is created and package is published  via the actions defined here: https://github.com/lightstep/otel-launcher-python/blob/main/.github/workflows/release.yml
 
+The commit that gets tagged must be in `main`, so do this _after_ merging a release PR.
+
 ```
 $ git clone git@github.com:lightstep/otel-launcher-python && cd otel-launcher-python
 # ensure the version matches the version beind released
