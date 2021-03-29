@@ -1,5 +1,9 @@
 ## Unreleased
 
+## 1.0.0
+
+- Updated dependencies to 1.0.0
+
 ## 1.0.0rc1
 
 - Removing metrics configuration since this feature is not part of trace GA
