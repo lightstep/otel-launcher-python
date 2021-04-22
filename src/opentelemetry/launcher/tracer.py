@@ -14,7 +14,9 @@
 
 from logging import getLogger
 
-from opentelemetry.exporter.otlp.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
+    OTLPSpanExporter,
+)
 
 _logger = getLogger(__name__)
 

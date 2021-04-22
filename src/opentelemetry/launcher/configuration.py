@@ -30,16 +30,16 @@ from typing import Optional
 from environs import Env
 from grpc import ssl_channel_credentials
 
-from opentelemetry.baggage.propagation import BaggagePropagator
+from opentelemetry.baggage.propagation import W3CBaggagePropagator
 from opentelemetry.instrumentation.distro import BaseDistro
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.launcher.version import __version__
-from opentelemetry.propagators import set_global_textmap
+from opentelemetry.propagate import set_global_textmap
 from opentelemetry.propagators.b3 import B3Format
 from opentelemetry.propagators.composite import CompositeHTTPPropagator
 from opentelemetry.sdk.trace import Resource, TracerProvider
 from opentelemetry.sdk.trace.export import (
-    BatchExportSpanProcessor,
+    BatchSpanProcessor,
     ConsoleSpanExporter,
 )
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
@@ -268,7 +268,7 @@ def configure_opentelemetry(
             [
                 {
                     "b3": B3Format(),
-                    "baggage": BaggagePropagator(),
+                    "baggage": W3CBaggagePropagator(),
                     "tracecontext": TraceContextTextMapPropagator(),
                 }[propagator]
                 for propagator in propagators
@@ -291,7 +291,7 @@ def configure_opentelemetry(
     )
 
     get_tracer_provider().add_span_processor(
-        BatchExportSpanProcessor(
+        BatchSpanProcessor(
             LightstepOTLPSpanExporter(
                 endpoint=span_exporter_endpoint,
                 credentials=credentials,
@@ -321,11 +321,17 @@ def configure_opentelemetry(
                 "Unable to get hostname, %s", no_hostname_message
             )
 
-    get_tracer_provider().resource = Resource(resource_attributes)
+    # FIXME: Accessing a private attribute here because resource is no longer
+    # settable since:
+    # https://github.com/open-telemetry/opentelemetry-python/pull/1652
+    # The provider resource can now only be set when the provider is
+    # instantiated, which is too soon for this launcher as it is now.
+    # pylint: disable=protected-access
+    get_tracer_provider()._resource = Resource(resource_attributes)
 
     if log_level <= DEBUG:
         get_tracer_provider().add_span_processor(
-            BatchExportSpanProcessor(ConsoleSpanExporter())
+            BatchSpanProcessor(ConsoleSpanExporter())
         )
 
 

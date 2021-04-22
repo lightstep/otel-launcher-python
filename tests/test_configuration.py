@@ -27,8 +27,8 @@ from opentelemetry.launcher.configuration import (
 )
 from opentelemetry.launcher.version import __version__
 from opentelemetry import baggage, trace
-from opentelemetry.propagators import get_global_textmap
-from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
+from opentelemetry.propagate import get_global_textmap
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 from opentelemetry.sdk.trace import TracerProvider
 
@@ -69,13 +69,13 @@ class TestConfiguration(TestCase):
             span_exporter_endpoint="localhost:1234",
         )
 
-    class MockBatchExportSpanProcessor(BatchExportSpanProcessor):
+    class MockBatchSpanProcessor(BatchSpanProcessor):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, schedule_delay_millis=1, **kwargs)
 
     @patch(
-        "opentelemetry.launcher.configuration.BatchExportSpanProcessor",
-        new=MockBatchExportSpanProcessor,
+        "opentelemetry.launcher.configuration.BatchSpanProcessor",
+        new=MockBatchSpanProcessor,
     )
     @patch("opentelemetry.launcher.tracer.LightstepOTLPSpanExporter.export")
     def test_only_service_name_and_token(self, mock_otlp_span_exporter):
@@ -89,7 +89,7 @@ class TestConfiguration(TestCase):
         ).start_as_current_span("name"):
             pass
 
-        # The worker thread in MockBatchExportSpanProcessor is configured to
+        # The worker thread in MockBatchSpanProcessor is configured to
         # wait 1ms before exporting. Sleeping here to give enough time to the
         # export method mock to be called.
         sleep(0.002)
@@ -192,7 +192,8 @@ class TestConfiguration(TestCase):
             ctx = baggage.set_baggage("abc", "def")
             prop = get_global_textmap()
             carrier = {}
-            prop.inject(dict.__setitem__, carrier, context=ctx)
+
+            prop.inject(carrier, context=ctx)
             self.assertEqual(
                 format(span.get_span_context().trace_id, "032x"),
                 carrier.get("x-b3-traceid"),
@@ -211,7 +212,7 @@ class TestConfiguration(TestCase):
             ctx = baggage.set_baggage("abc", "def")
             prop = get_global_textmap()
             carrier = {}
-            prop.inject(dict.__setitem__, carrier, context=ctx)
+            prop.inject(carrier, context=ctx)
             self.assertIsNone(carrier.get("x-b3-traceid"))
             self.assertEqual(carrier.get("baggage"), "abc=def")
 
@@ -227,7 +228,7 @@ class TestConfiguration(TestCase):
             ctx = baggage.set_baggage("abc", "def")
             prop = get_global_textmap()
             carrier = {}
-            prop.inject(dict.__setitem__, carrier, context=ctx)
+            prop.inject(carrier, context=ctx)
             self.assertIn(
                 "00-{}".format(
                     format(span.get_span_context().trace_id, "032x")
@@ -247,7 +248,7 @@ class TestConfiguration(TestCase):
             ctx = baggage.set_baggage("abc", "def")
             prop = get_global_textmap()
             carrier = {}
-            prop.inject(dict.__setitem__, carrier, context=ctx)
+            prop.inject(carrier, context=ctx)
             self.assertEqual(
                 format(span.get_span_context().trace_id, "032x"),
                 carrier.get("x-b3-traceid"),
