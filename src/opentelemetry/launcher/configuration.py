@@ -323,7 +323,12 @@ def configure_opentelemetry(
                 "Unable to get hostname, %s", no_hostname_message
             )
 
-    get_tracer_provider().resource = Resource(resource_attributes)
+    # FIXME: Accessing a private attribute here because resource is no longer
+    # settable since:
+    # https://github.com/open-telemetry/opentelemetry-python/pull/1652
+    # The provider resource can now only be set when the provider is
+    # instantiated, which is too soon for this launcher as it is now.
+    get_tracer_provider()._resource = Resource(resource_attributes)
 
     if log_level <= DEBUG:
         get_tracer_provider().add_span_processor(
