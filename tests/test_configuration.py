@@ -104,7 +104,7 @@ class TestConfiguration(TestCase):
         )
 
         mock_otlp_span_exporter.assert_called_with(
-            endpoint="ingest.lightstep.com:443",
+            endpoint="https://ingest.lightstep.com:443",
             credentials=ANY,
             headers=(("lightstep-access-token", "a" * 104),),
         )
@@ -336,7 +336,7 @@ class TestConfiguration(TestCase):
 
             self.assertEqual(
                 configuration._OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
-                "ingest.lightstep.com:443",
+                "https://ingest.lightstep.com:443",
             )
 
             with patch.dict(
