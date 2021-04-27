@@ -25,7 +25,7 @@ from opentelemetry.launcher.configuration import (
     InvalidConfigurationError,
     _ATTRIBUTE_HOST_NAME,
 )
-from opentelemetry.launcher.version import __version__
+from opentelemetry.sdk.version import __version__
 from opentelemetry import baggage, trace
 from opentelemetry.propagate import get_global_textmap
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -146,6 +146,9 @@ class TestConfiguration(TestCase):
     def test_resource_attributes(self, mock_resource, mock_gethostname):
         mock_gethostname.return_value = "the_hostname"
 
+        from opentelemetry import trace
+        reload(trace)
+
         configure_opentelemetry(
             service_name="service_name",
             service_version="service_version",
@@ -156,6 +159,7 @@ class TestConfiguration(TestCase):
             {
                 "telemetry.sdk.language": "python",
                 "telemetry.sdk.version": __version__,
+                "telemetry.sdk.name": "opentelemetry",
                 "service.name": "service_name",
                 "service.version": "service_version",
                 _ATTRIBUTE_HOST_NAME: "the_hostname",
@@ -167,6 +171,9 @@ class TestConfiguration(TestCase):
     def test_service_version(self, mock_resource, mock_gethostname):
         mock_gethostname.return_value = "the_hostname"
 
+        from opentelemetry import trace
+        reload(trace)
+
         configure_opentelemetry(
             service_name="service_name",
             access_token="a" * 104,
@@ -176,6 +183,7 @@ class TestConfiguration(TestCase):
             {
                 "telemetry.sdk.language": "python",
                 "telemetry.sdk.version": __version__,
+                "telemetry.sdk.name": "opentelemetry",
                 "service.name": "service_name",
                 _ATTRIBUTE_HOST_NAME: "the_hostname",
             }
@@ -263,7 +271,12 @@ class TestConfiguration(TestCase):
 
     @patch("opentelemetry.launcher.configuration.gethostname")
     @patch("opentelemetry.launcher.configuration.Resource")
-    def test_hostname(self, mock_resource, mock_gethostname):
+    def test_hostname_no_resource_attributes(
+        self, mock_resource, mock_gethostname
+    ):
+
+        from opentelemetry import trace
+        reload(trace)
 
         mock_gethostname.return_value = "the_hostname"
 
@@ -278,8 +291,17 @@ class TestConfiguration(TestCase):
                 "telemetry.sdk.version": __version__,
                 "service.name": "service_name",
                 _ATTRIBUTE_HOST_NAME: "the_hostname",
+                "telemetry.sdk.name": "opentelemetry"
             }
         )
+
+    @patch("opentelemetry.launcher.configuration.gethostname")
+    @patch("opentelemetry.launcher.configuration.Resource")
+    def test_hostname_with_resource_attributes(
+        self, mock_resource, mock_gethostname
+    ):
+        from opentelemetry import trace
+        reload(trace)
 
         configure_opentelemetry(
             service_name="service_name",
@@ -291,8 +313,11 @@ class TestConfiguration(TestCase):
 
         mock_resource.assert_called_with(
             {
+                "telemetry.sdk.language": "python",
+                "telemetry.sdk.version": __version__,
                 "service.name": "service_name",
                 _ATTRIBUTE_HOST_NAME: "other_hostname",
+                "telemetry.sdk.name": "opentelemetry"
             }
         )
 

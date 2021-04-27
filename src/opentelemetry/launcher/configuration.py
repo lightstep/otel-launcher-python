@@ -33,7 +33,6 @@ from grpc import ssl_channel_credentials
 from opentelemetry.baggage.propagation import W3CBaggagePropagator
 from opentelemetry.instrumentation.distro import BaseDistro
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
-from opentelemetry.launcher.version import __version__
 from opentelemetry.propagate import set_global_textmap
 from opentelemetry.propagators.b3 import B3Format
 from opentelemetry.propagators.composite import CompositeHTTPPropagator
@@ -42,6 +41,7 @@ from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
     ConsoleSpanExporter,
 )
+from opentelemetry.sdk.version import __version__
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 from opentelemetry.trace.propagation.tracecontext import (
     TraceContextTextMapPropagator,
@@ -217,25 +217,6 @@ def configure_opentelemetry(
         _logger.error(message)
         raise InvalidConfigurationError(message)
 
-    resource_attributes["service.name"] = service_name
-
-    logged_attributes = {
-        "access_token": access_token,
-        "span_exporter_endpoint": span_exporter_endpoint,
-        "service_name": service_name,
-        "propagators": propagators,
-        "resource_attributes": resource_attributes,
-        "log_level": getLevelName(log_level),
-        "span_exporter_insecure": span_exporter_insecure,
-    }
-
-    if service_version is not None:
-        resource_attributes["service.version"] = service_version
-        logged_attributes["service_version"] = service_version
-
-    for key, value in logged_attributes.items():
-        _logger.debug("%s: %s", key, value)
-
     if access_token is None:
         if (
             span_exporter_endpoint
@@ -321,13 +302,55 @@ def configure_opentelemetry(
                 "Unable to get hostname, %s", no_hostname_message
             )
 
-    # FIXME: Accessing a private attribute here because resource is no longer
-    # settable since:
-    # https://github.com/open-telemetry/opentelemetry-python/pull/1652
-    # The provider resource can now only be set when the provider is
-    # instantiated, which is too soon for this launcher as it is now.
-    # pylint: disable=protected-access
-    get_tracer_provider()._resource = Resource(resource_attributes)
+    tracer_provider = get_tracer_provider()
+
+    if isinstance(tracer_provider, TracerProvider):
+
+        # FIXME: Accessing a private attribute here because resource is no
+        # longer settable since:
+        # https://github.com/open-telemetry/opentelemetry-python/pull/1652
+        # The provider resource can now only be set when the provider is
+        # instantiated, which is too soon for this launcher as it is now.
+        # pylint: disable=protected-access
+        resource = tracer_provider._resource
+
+        if service_name is not None:
+            if "service.name" in resource.attributes.keys():
+                _logger.warning(
+                    "service.name is already defined in the resource "
+                    "attributes, overriding with %s",
+                    service_name,
+                )
+            resource_attributes["service.name"] = service_name
+
+        if service_version is not None:
+            if "service.version" in resource.attributes.keys():
+                _logger.warning(
+                    "service.version is already defined in the resource "
+                    "attributes, overriding with %s",
+                    service_version,
+                )
+            resource_attributes["service.version"] = service_version
+
+        original_attributes = resource.attributes
+        original_attributes.update(resource_attributes)
+
+        get_tracer_provider()._resource = Resource(original_attributes)
+
+    logged_attributes = {
+        "access_token": access_token,
+        "span_exporter_endpoint": span_exporter_endpoint,
+        "service_name": service_name,
+        "propagators": propagators,
+        "resource_attributes": resource_attributes,
+        "log_level": getLevelName(log_level),
+        "span_exporter_insecure": span_exporter_insecure,
+    }
+
+    logged_attributes.update(resource_attributes)
+
+    for key, value in logged_attributes.items():
+        _logger.debug("%s: %s", key, value)
 
     if log_level <= DEBUG:
         get_tracer_provider().add_span_processor(
