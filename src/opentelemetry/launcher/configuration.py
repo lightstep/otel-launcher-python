@@ -41,7 +41,6 @@ from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
     ConsoleSpanExporter,
 )
-from opentelemetry.sdk.version import __version__
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 from opentelemetry.trace.propagation.tracecontext import (
     TraceContextTextMapPropagator,
@@ -65,11 +64,7 @@ _OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = _env.str(
 _LS_SERVICE_NAME = _env.str("LS_SERVICE_NAME", None)
 _LS_SERVICE_VERSION = _env.str("LS_SERVICE_VERSION", None)
 _OTEL_PROPAGATORS = _env.str("OTEL_PROPAGATORS", "b3")
-_OTEL_RESOURCE_ATTRIBUTES = _env.str(
-    "OTEL_RESOURCE_ATTRIBUTES",
-    "telemetry.sdk.language=python,"
-    "telemetry.sdk.version={}".format(__version__),
-)
+_OTEL_RESOURCE_ATTRIBUTES = _env.str("OTEL_RESOURCE_ATTRIBUTES", "")
 _OTEL_LOG_LEVEL = _env.str("OTEL_LOG_LEVEL", "ERROR")
 _OTEL_EXPORTER_OTLP_TRACES_INSECURE = _env.bool(
     "OTEL_EXPORTER_OTLP_TRACES_INSECURE", False
