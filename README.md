@@ -42,7 +42,7 @@ configure_opentelemetry(
     service_name="service-123",
     service_version="1.2.3",
     access_token="my-token",
-    span_exporter_endpoint="ingest.lightstep.com:443",
+    span_exporter_endpoint="https://ingest.lightstep.com:443",
     log_level=debug,
     span_exporter_insecure=False,
 )
@@ -72,15 +72,15 @@ Once that is done, clone the `opentelemetry-python` repo to get the example code
 
 ```bash
 git clone git@github.com:open-telemetry/opentelemetry-python.git
-git checkout v1.0.0rc1
 cd opentelemetry-python
+git checkout v1.1.0
 ```
 
 Set the environment variables:
 
 ```bash
 export LS_SERVICE_NAME=auto-instrumentation-testing
-export LS_ACCESS_TOKEN=<the access token>
+export LS_ACCESS_TOKEN=<my-token>
 ```
 
 Run the server:
@@ -106,7 +106,7 @@ This should produce spans that can be captured in the Lightstep Explorer.
 |service_name|LS_SERVICE_NAME|y|-|
 |service_version|LS_SERVICE_VERSION|n|`None`|
 |access_token|LS_ACCESS_TOKEN|n|`None`|
-|span_exporter_endpoint|OTEL_EXPORTER_OTLP_TRACES_ENDPOINT|n|`ingest.lightstep.com:443`|
+|span_exporter_endpoint|OTEL_EXPORTER_OTLP_TRACES_ENDPOINT|n|`https://ingest.lightstep.com:443`|
 |span_exporter_insecure|OTEL_EXPORTER_OTLP_TRACES_INSECURE|n|`False`|
 |propagators|OTEL_PROPAGATORS|n|`b3`|
 |resource_attributes|OTEL_RESOURCE_ATTRIBUTES|n|`telemetry.sdk.language=python,telemetry.sdk.version=0.12b0`|
