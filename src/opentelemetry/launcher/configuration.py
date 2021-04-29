@@ -49,7 +49,9 @@ from opentelemetry.trace.propagation.tracecontext import (
 _env = Env()
 _logger = getLogger(__name__)
 
-_DEFAULT_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "ingest.lightstep.com:443"
+_DEFAULT_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = (
+    "https://ingest.lightstep.com:443"
+)
 
 _LS_ACCESS_TOKEN = _env.str("LS_ACCESS_TOKEN", None)
 _OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = _env.str(
