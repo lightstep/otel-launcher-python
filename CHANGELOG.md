@@ -1,5 +1,12 @@
 ## Unreleased
 
+## 1.1.0
+
+- Updated dependencies to 1.1.0
+- Updated import paths
+- Added protocol to default endpoints
+- Updated documentation
+
 ## 1.0.0
 
 - Updated dependencies to 1.0.0
