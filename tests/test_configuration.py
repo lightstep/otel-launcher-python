@@ -25,10 +25,10 @@ from opentelemetry.launcher.configuration import (
     InvalidConfigurationError,
     _ATTRIBUTE_HOST_NAME,
 )
-from opentelemetry.launcher.version import __version__
+from opentelemetry.sdk.version import __version__
 from opentelemetry import baggage, trace
-from opentelemetry.propagators import get_global_textmap
-from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
+from opentelemetry.propagate import get_global_textmap
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 from opentelemetry.sdk.trace import TracerProvider
 
@@ -69,13 +69,13 @@ class TestConfiguration(TestCase):
             span_exporter_endpoint="localhost:1234",
         )
 
-    class MockBatchExportSpanProcessor(BatchExportSpanProcessor):
+    class MockBatchSpanProcessor(BatchSpanProcessor):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, schedule_delay_millis=1, **kwargs)
 
     @patch(
-        "opentelemetry.launcher.configuration.BatchExportSpanProcessor",
-        new=MockBatchExportSpanProcessor,
+        "opentelemetry.launcher.configuration.BatchSpanProcessor",
+        new=MockBatchSpanProcessor,
     )
     @patch("opentelemetry.launcher.tracer.LightstepOTLPSpanExporter.export")
     def test_only_service_name_and_token(self, mock_otlp_span_exporter):
@@ -89,7 +89,7 @@ class TestConfiguration(TestCase):
         ).start_as_current_span("name"):
             pass
 
-        # The worker thread in MockBatchExportSpanProcessor is configured to
+        # The worker thread in MockBatchSpanProcessor is configured to
         # wait 1ms before exporting. Sleeping here to give enough time to the
         # export method mock to be called.
         sleep(0.002)
@@ -146,6 +146,9 @@ class TestConfiguration(TestCase):
     def test_resource_attributes(self, mock_resource, mock_gethostname):
         mock_gethostname.return_value = "the_hostname"
 
+        from opentelemetry import trace
+        reload(trace)
+
         configure_opentelemetry(
             service_name="service_name",
             service_version="service_version",
@@ -156,6 +159,7 @@ class TestConfiguration(TestCase):
             {
                 "telemetry.sdk.language": "python",
                 "telemetry.sdk.version": __version__,
+                "telemetry.sdk.name": "opentelemetry",
                 "service.name": "service_name",
                 "service.version": "service_version",
                 _ATTRIBUTE_HOST_NAME: "the_hostname",
@@ -167,6 +171,9 @@ class TestConfiguration(TestCase):
     def test_service_version(self, mock_resource, mock_gethostname):
         mock_gethostname.return_value = "the_hostname"
 
+        from opentelemetry import trace
+        reload(trace)
+
         configure_opentelemetry(
             service_name="service_name",
             access_token="a" * 104,
@@ -176,6 +183,7 @@ class TestConfiguration(TestCase):
             {
                 "telemetry.sdk.language": "python",
                 "telemetry.sdk.version": __version__,
+                "telemetry.sdk.name": "opentelemetry",
                 "service.name": "service_name",
                 _ATTRIBUTE_HOST_NAME: "the_hostname",
             }
@@ -192,7 +200,8 @@ class TestConfiguration(TestCase):
             ctx = baggage.set_baggage("abc", "def")
             prop = get_global_textmap()
             carrier = {}
-            prop.inject(dict.__setitem__, carrier, context=ctx)
+
+            prop.inject(carrier, context=ctx)
             self.assertEqual(
                 format(span.get_span_context().trace_id, "032x"),
                 carrier.get("x-b3-traceid"),
@@ -211,7 +220,7 @@ class TestConfiguration(TestCase):
             ctx = baggage.set_baggage("abc", "def")
             prop = get_global_textmap()
             carrier = {}
-            prop.inject(dict.__setitem__, carrier, context=ctx)
+            prop.inject(carrier, context=ctx)
             self.assertIsNone(carrier.get("x-b3-traceid"))
             self.assertEqual(carrier.get("baggage"), "abc=def")
 
@@ -227,7 +236,7 @@ class TestConfiguration(TestCase):
             ctx = baggage.set_baggage("abc", "def")
             prop = get_global_textmap()
             carrier = {}
-            prop.inject(dict.__setitem__, carrier, context=ctx)
+            prop.inject(carrier, context=ctx)
             self.assertIn(
                 "00-{}".format(
                     format(span.get_span_context().trace_id, "032x")
@@ -247,7 +256,7 @@ class TestConfiguration(TestCase):
             ctx = baggage.set_baggage("abc", "def")
             prop = get_global_textmap()
             carrier = {}
-            prop.inject(dict.__setitem__, carrier, context=ctx)
+            prop.inject(carrier, context=ctx)
             self.assertEqual(
                 format(span.get_span_context().trace_id, "032x"),
                 carrier.get("x-b3-traceid"),
@@ -262,7 +271,12 @@ class TestConfiguration(TestCase):
 
     @patch("opentelemetry.launcher.configuration.gethostname")
     @patch("opentelemetry.launcher.configuration.Resource")
-    def test_hostname(self, mock_resource, mock_gethostname):
+    def test_hostname_no_resource_attributes(
+        self, mock_resource, mock_gethostname
+    ):
+
+        from opentelemetry import trace
+        reload(trace)
 
         mock_gethostname.return_value = "the_hostname"
 
@@ -277,8 +291,17 @@ class TestConfiguration(TestCase):
                 "telemetry.sdk.version": __version__,
                 "service.name": "service_name",
                 _ATTRIBUTE_HOST_NAME: "the_hostname",
+                "telemetry.sdk.name": "opentelemetry"
             }
         )
+
+    @patch("opentelemetry.launcher.configuration.gethostname")
+    @patch("opentelemetry.launcher.configuration.Resource")
+    def test_hostname_with_resource_attributes(
+        self, mock_resource, mock_gethostname
+    ):
+        from opentelemetry import trace
+        reload(trace)
 
         configure_opentelemetry(
             service_name="service_name",
@@ -290,8 +313,11 @@ class TestConfiguration(TestCase):
 
         mock_resource.assert_called_with(
             {
+                "telemetry.sdk.language": "python",
+                "telemetry.sdk.version": __version__,
                 "service.name": "service_name",
                 _ATTRIBUTE_HOST_NAME: "other_hostname",
+                "telemetry.sdk.name": "opentelemetry"
             }
         )
 
