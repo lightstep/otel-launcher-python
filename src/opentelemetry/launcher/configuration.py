@@ -29,12 +29,11 @@ from typing import Optional
 
 from environs import Env
 from grpc import ssl_channel_credentials
+from pkg_resources import iter_entry_points
 
-from opentelemetry.baggage.propagation import W3CBaggagePropagator
 from opentelemetry.instrumentation.distro import BaseDistro
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.propagate import set_global_textmap
-from opentelemetry.propagators.b3 import B3Format
 from opentelemetry.propagators.composite import CompositeHTTPPropagator
 from opentelemetry.sdk.trace import Resource, TracerProvider
 from opentelemetry.sdk.trace.export import (
@@ -42,9 +41,6 @@ from opentelemetry.sdk.trace.export import (
     ConsoleSpanExporter,
 )
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
-from opentelemetry.trace.propagation.tracecontext import (
-    TraceContextTextMapPropagator,
-)
 
 _env = Env()
 _logger = getLogger(__name__)
@@ -239,20 +235,24 @@ def configure_opentelemetry(
 
     _logger.debug("configuring propagation")
 
-    # FIXME use entry points (instead of a dictionary) to locate propagator
-    # classes
-    set_global_textmap(
-        CompositeHTTPPropagator(
-            [
-                {
-                    "b3": B3Format(),
-                    "baggage": W3CBaggagePropagator(),
-                    "tracecontext": TraceContextTextMapPropagator(),
-                }[propagator]
-                for propagator in propagators
-            ]
-        )
-    )
+    propagator_instances = []
+
+    for propagator in propagators:
+
+        try:
+            propagator_instance = next(
+                iter_entry_points("opentelemetry_propagator", name=propagator),
+            ).load()()
+        # pylint: disable=broad-except
+        except Exception:
+            _logger.exception(
+                "Unable to instantiate propagator %s", propagator
+            )
+            continue
+
+        propagator_instances.append(propagator_instance)
+
+    set_global_textmap(CompositeHTTPPropagator(propagator_instances))
 
     headers = None
 
