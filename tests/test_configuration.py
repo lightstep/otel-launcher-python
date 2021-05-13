@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from unittest import TestCase
+from sys import version_info
 from unittest.mock import patch, ANY
 from time import sleep
 from logging import DEBUG, WARNING
@@ -31,9 +32,41 @@ from opentelemetry.propagate import get_global_textmap
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.propagators.b3 import B3MultiFormat
+from opentelemetry.propagators.ot_trace import OTTracePropagator
 
 
 class TestConfiguration(TestCase):
+
+    @patch("opentelemetry.launcher.configuration.CompositePropagator")
+    def test_propagator_entry_point(self, mock_compositepropagator):
+        configure_opentelemetry(
+            service_name="service-123",
+            span_exporter_endpoint="localhost:1234",
+        )
+
+        if version_info.major < 8:
+            call_arg = mock_compositepropagator.call_args[0][0][0]
+
+        else:
+            call_arg = mock_compositepropagator.call_args.args[0][0]
+
+        self.assertIsInstance(call_arg, B3MultiFormat)
+
+        configure_opentelemetry(
+            service_name="service-123",
+            span_exporter_endpoint="localhost:1234",
+            propagators="ottrace"
+        )
+
+        if version_info.major < 8:
+            call_arg = mock_compositepropagator.call_args[0][0][0]
+
+        else:
+            call_arg = mock_compositepropagator.call_args.args[0][0]
+
+        self.assertIsInstance(call_arg, OTTracePropagator)
+
     def test_all_environment_variables_used(self):
         pass
 
@@ -249,7 +282,7 @@ class TestConfiguration(TestCase):
             service_name="service_name",
             service_version="service_version",
             access_token="a" * 104,
-            propagators="b3,baggage,tracecontext",
+            propagators="b3multi,baggage,tracecontext",
         )
 
         with trace.get_tracer(__name__).start_as_current_span("test") as span:

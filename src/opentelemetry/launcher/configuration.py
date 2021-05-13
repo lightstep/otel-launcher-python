@@ -29,22 +29,18 @@ from typing import Optional
 
 from environs import Env
 from grpc import ssl_channel_credentials
+from pkg_resources import iter_entry_points
 
-from opentelemetry.baggage.propagation import W3CBaggagePropagator
 from opentelemetry.instrumentation.distro import BaseDistro
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
 from opentelemetry.propagate import set_global_textmap
-from opentelemetry.propagators.b3 import B3Format
-from opentelemetry.propagators.composite import CompositeHTTPPropagator
+from opentelemetry.propagators.composite import CompositePropagator
 from opentelemetry.sdk.trace import Resource, TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
     ConsoleSpanExporter,
 )
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
-from opentelemetry.trace.propagation.tracecontext import (
-    TraceContextTextMapPropagator,
-)
 
 _env = Env()
 _logger = getLogger(__name__)
@@ -65,7 +61,7 @@ _OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = _env.str(
 )
 _LS_SERVICE_NAME = _env.str("LS_SERVICE_NAME", None)
 _LS_SERVICE_VERSION = _env.str("LS_SERVICE_VERSION", None)
-_OTEL_PROPAGATORS = _env.str("OTEL_PROPAGATORS", "b3")
+_OTEL_PROPAGATORS = _env.str("OTEL_PROPAGATORS", "b3multi")
 _OTEL_RESOURCE_ATTRIBUTES = _env.str("OTEL_RESOURCE_ATTRIBUTES", "")
 _OTEL_LOG_LEVEL = _env.str("OTEL_LOG_LEVEL", "ERROR")
 _OTEL_EXPORTER_OTLP_TRACES_INSECURE = _env.bool(
@@ -141,7 +137,7 @@ def configure_opentelemetry(
             used to sernd spans to the Lightstep satellite. Defaults to `None`.
         propagators (str): OTEL_PROPAGATORS, a list of propagators to be used.
             The list is specified as a comma-separated string of values, for
-            example: `a,b,c,d,e,f`. Defaults to `b3`.
+            example: `a,b,c,d,e,f`. Defaults to `b3multi`.
         resource_attributes (str): OTEL_RESOURCE_ATTRIBUTES, a dictionary of
             key value pairs used to instantiate the resouce of the tracer
             provider. The dictionary is specified as a string of
@@ -239,20 +235,24 @@ def configure_opentelemetry(
 
     _logger.debug("configuring propagation")
 
-    # FIXME use entry points (instead of a dictionary) to locate propagator
-    # classes
-    set_global_textmap(
-        CompositeHTTPPropagator(
-            [
-                {
-                    "b3": B3Format(),
-                    "baggage": W3CBaggagePropagator(),
-                    "tracecontext": TraceContextTextMapPropagator(),
-                }[propagator]
-                for propagator in propagators
-            ]
-        )
-    )
+    propagator_instances = []
+
+    for propagator in propagators:
+
+        try:
+            propagator_instance = next(
+                iter_entry_points("opentelemetry_propagator", name=propagator),
+            ).load()()
+        # pylint: disable=broad-except
+        except Exception:
+            _logger.exception(
+                "Unable to instantiate propagator %s", propagator
+            )
+            continue
+
+        propagator_instances.append(propagator_instance)
+
+    set_global_textmap(CompositePropagator(propagator_instances))
 
     headers = None
 
