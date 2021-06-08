@@ -1,9 +1,11 @@
 # Releasing
 
-Once all the changes for a release have been merged to main, ensure the following:
+Once all the changes for a release have been merged to `main`, ensure the following:
 
+- [ ] dependency versions have been updated in `setup.cfg`
 - [ ] version has been updated in `src/opentelemetry/launcher/version.py`
 - [ ] tests are passing
+- [ ] `test_example.py` is also passing
 - [ ] user facing documentation has been updated
 
 # Publishing
