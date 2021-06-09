@@ -16,41 +16,70 @@ from time import sleep
 from subprocess import Popen
 from shlex import split
 from os import environ
+from random import randint
 
-from pytest import skip, fail
+from pytest import fixture
 
 
-def test_example():
+@fixture
+def setup_teardown():
 
     if environ.get("LS_ACCESS_TOKEN") is None:
-        skip(
+        raise Exception(
             "Environment variable LS_ACCESS_TOKEN is not set, "
-            "set again and rerun"
+            "set again and rerun."
         )
 
     environment = {"LS_ACCESS_TOKEN": environ.get("LS_ACCESS_TOKEN")}
 
-    try:
-        server_process = Popen(
-            split(".nox/example-3-8/bin/python3 examples/server.py"),
-            start_new_session=True,
-            env=environment,
-        )
+    identifier = f"{randint(0, 999):03}"
 
-        client_process = Popen(
-            split(".nox/example-3-8/bin/python3 examples/client.py"),
-            start_new_session=True,
-            env=environment,
-        )
+    server_process = Popen(
+        split(
+            ".nox/example-3-9/bin/python3 examples/server.py {}".format(
+                identifier
+            )
+        ),
+        start_new_session=True,
+        env=environment,
+    )
 
-        sleep(15)
+    sleep(5)
 
-    except Exception as error:
-        fail("Unexpected error raised: {}".format(error))
+    client_process = Popen(
+        split(
+            ".nox/example-3-9/bin/python3 examples/client.py {}".format(
+                identifier
+            )
+        ),
+        start_new_session=True,
+        env=environment,
+    )
 
-    finally:
-        try:
-            server_process.terminate()
-            client_process.terminate()
-        except Exception:
-            pass
+    sleep(5)
+
+    yield identifier
+
+    server_process.terminate()
+    client_process.terminate()
+
+
+def test_example(setup_teardown):
+
+    assert input(
+        "Check your Explorer tab in app.lightstep.com. The following "
+        "spans should be displayed:\n"
+        "\n"
+        "parent-{identifier}\n"
+        "    child-0-{identifier}\n"
+        "    child-1-{identifier}\n"
+        "        request to http://localhost:8000/hello\n"
+        "            HTTP GET\n"
+        "                /hello\n"
+        "    request to http://localhost:8000/shutdown\n"
+        "        HTTP GET\n"
+        "            /shutdown\n"
+        "\n"
+        "Type \"y\" if the expected spans are displayed."
+        "\n".format(identifier=setup_teardown)
+    ) == "y"
