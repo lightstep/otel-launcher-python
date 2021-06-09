@@ -1,5 +1,9 @@
 ## Unreleased
 
+## 1.3.0
+
+- Updated dependencies to 1.3.0
+
 ## 1.2.0
 
 - Updated dependencies to 1.2.0
