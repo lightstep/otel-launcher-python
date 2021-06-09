@@ -17,7 +17,6 @@ def send_requests():
     RequestsInstrumentor().instrument()
 
     configure_opentelemetry(
-        span_exporter_endpoint="https://ingest.lightstep.com:443",
         service_name="client_service_name",
         service_version="client_version",  # optional
     )
