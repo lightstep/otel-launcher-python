@@ -127,9 +127,9 @@ def configure_opentelemetry(
         access_token (str): LS_ACCESS_TOKEN, the access token used to
             authenticate with the Lightstep satellite. This configuration value
             is mandatory.
-        span_exporter_endpoint (str): OTEL_EXPORTER_OTLP_TRACES_ENDPOINT, the URL of the Lightstep
-            satellite where the spans are to be exported. Defaults to
-            `ingest.lightstep.com:443`.
+        span_exporter_endpoint (str): OTEL_EXPORTER_OTLP_TRACES_ENDPOINT, the
+            URL of the Lightstep satellite where the spans are to be exported.
+            Defaults to `ingest.lightstep.com:443`.
         service_name (str): LS_SERVICE_NAME, the name of the service that is
             used along with the access token to send spans to the Lighstep
             satellite. This configuration value is mandatory.
@@ -156,9 +156,9 @@ def configure_opentelemetry(
 
             Defaults to `logging.ERROR`.
         span_exporter_insecure (bool):
-            OTEL_EXPORTER_OTLP_TRACES_INSECURE, a boolean value that indicates if
-            an insecure channel is to be used to send spans to the satellite.
-            Defaults to `False`.
+            OTEL_EXPORTER_OTLP_TRACES_INSECURE, a boolean value that indicates
+            if an insecure channel is to be used to send spans to the
+            satellite. Defaults to `False`.
     """
 
     log_levels = {
@@ -221,7 +221,10 @@ def configure_opentelemetry(
                 "Set environment variable LS_ACCESS_TOKEN"
             ).format(_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT)
             if not _auto_instrumented:
-                message += " or call configure_opentelemetry with access_token defined"
+                message += (
+                    " or call configure_opentelemetry "
+                    "with access_token defined"
+                )
             _logger.error(message)
             raise InvalidConfigurationError(message)
 

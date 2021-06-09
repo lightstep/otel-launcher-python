@@ -1,7 +1,7 @@
 from nox import session
 
 
-@session(python=["3.6", "3.7", "3.8"], reuse_venv=True)
+@session(python=["3.6", "3.7", "3.8", "3.9"], reuse_venv=True)
 def test(session):
     session.install(".")
     session.install("-r", "requirements-test.txt")
@@ -9,10 +9,10 @@ def test(session):
     if session.posargs:
         session.run("pytest", *session.posargs)
     else:
-        session.run("pytest")
+        session.run("pytest", "tests/test_configuration.py")
 
 
-@session(python=["3.8"], reuse_venv=True)
+@session(python=["3.9"], reuse_venv=True)
 def lint(session):
     session.install(".")
     session.install("-r", "requirements-test.txt")
@@ -22,7 +22,7 @@ def lint(session):
     session.run("pylint", "src")
 
 
-@session(python=["3.8"], reuse_venv=True)
+@session(python=["3.6", "3.7", "3.8", "3.9"], reuse_venv=True)
 def coverage(session):
     session.install(".")
     session.install("-r", "requirements-test.txt")
@@ -36,3 +36,11 @@ def coverage(session):
         "-k",
         "TestConfiguration",
     )
+
+
+@session(python=["3.9"], reuse_venv=True)
+def example(session):
+    session.install(".")
+    session.install("-r", "requirements-test.txt")
+
+    session.run("pytest", "tests/test_example.py", "-s")

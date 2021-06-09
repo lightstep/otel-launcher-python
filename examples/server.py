@@ -12,6 +12,7 @@ basicConfig(format="\033[94mSERVER:\033[0m %(message)s", level=DEBUG)
 
 def receive_requests():
     configure_opentelemetry(
+        span_exporter_endpoint="https://ingest.lightstep.com:443",
         service_name="server_service_name",
         service_version="server_version",  # optional
     )
