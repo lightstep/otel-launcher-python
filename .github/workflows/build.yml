@@ -44,3 +44,9 @@ jobs:
     - name: Run lint
       if: matrix.python-version == 3.8
       run: nox -s lint
+
+    - name: Send data to OTLP backend
+      uses: codeboten/github-action-to-otlp@v1
+      with:
+        endpoint: "ingest.lightstep.com:443"
+        headers: "lightstep-access-token=${{ secrets.ACCESS_TOKEN }}"
