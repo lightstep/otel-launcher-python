@@ -184,8 +184,8 @@ def configure_opentelemetry(
     if log_level not in log_levels.keys():
 
         message = (
-            "Invalid configuration: invalid log_level value."
-            "It must be one of {}.".format(", ".join(log_levels.keys()))
+            f"Invalid configuration: invalid log_level value. "
+            f"It must be one of {', '.join(log_levels.keys())}"
         )
         _logger.error(message)
         raise InvalidConfigurationError(message)
@@ -216,10 +216,11 @@ def configure_opentelemetry(
             == _DEFAULT_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
         ):
             message = (
-                "Invalid configuration: token missing. "
-                "Must be set to send data to {}. "
-                "Set environment variable LS_ACCESS_TOKEN"
-            ).format(_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT)
+                f"Invalid configuration: token missing. "
+                f"Must be set to send data to "
+                f"{_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT}."
+                f"Set environment variable LS_ACCESS_TOKEN"
+            )
             if not _auto_instrumented:
                 message += (
                     " or call configure_opentelemetry "
@@ -332,10 +333,10 @@ def configure_opentelemetry(
                 )
             resource_attributes["service.version"] = service_version
 
-        original_attributes = resource.attributes
-        original_attributes.update(resource_attributes)
+        resource_attributes_copy = resource.attributes.copy()
+        resource_attributes_copy.update(resource_attributes)
 
-        get_tracer_provider()._resource = Resource(original_attributes)
+        get_tracer_provider()._resource = Resource(resource_attributes_copy)
 
     logged_attributes = {
         "access_token": access_token,
