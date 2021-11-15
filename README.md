@@ -79,7 +79,7 @@ git checkout v1.1.0
 Set the environment variables:
 
 ```bash
-export LS_SERVICE_NAME=auto-instrumentation-testing
+export OTEL_SERVICE_NAME=auto-instrumentation-testing
 export LS_ACCESS_TOKEN=<my-token>
 ```
 
@@ -103,7 +103,7 @@ This should produce spans that can be captured in the Lightstep Explorer.
 
 |Config|Env Variable|Required|Default|
 |------|------------|--------|-------|
-|service_name|LS_SERVICE_NAME|y|-|
+|service_name|OTEL_SERVICE_NAME|y|-|
 |service_version|LS_SERVICE_VERSION|n|`None`|
 |access_token|LS_ACCESS_TOKEN|n|`None`|
 |span_exporter_endpoint|OTEL_EXPORTER_OTLP_TRACES_ENDPOINT|n|`https://ingest.lightstep.com:443`|
