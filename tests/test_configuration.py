@@ -16,7 +16,7 @@ from unittest import TestCase
 from sys import version_info
 from unittest.mock import patch, ANY
 from time import sleep
-from logging import DEBUG, WARNING
+from logging import DEBUG, WARNING, ERROR
 from importlib import reload
 from os import environ
 
@@ -30,13 +30,17 @@ from opentelemetry.sdk.version import __version__
 from opentelemetry import baggage, trace
 from opentelemetry.propagate import get_global_textmap
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.trace import get_tracer_provider, set_tracer_provider
-from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.trace import Once
 from opentelemetry.propagators.b3 import B3MultiFormat
 from opentelemetry.propagators.ot_trace import OTTracePropagator
+from opentelemetry.attributes import BoundedAttributes
 
 
 class TestConfiguration(TestCase):
+
+    def setUp(self):
+        trace._TRACER_PROVIDER_SET_ONCE = Once()
+        trace._TRACER_PROVIDER = None
 
     @patch("opentelemetry.launcher.configuration.CompositePropagator")
     def test_propagator_entry_point(self, mock_compositepropagator):
@@ -53,6 +57,9 @@ class TestConfiguration(TestCase):
 
         self.assertIsInstance(call_arg, B3MultiFormat)
 
+        trace._TRACER_PROVIDER_SET_ONCE = Once()
+        trace._TRACER_PROVIDER = None
+
         configure_opentelemetry(
             service_name="service-123",
             span_exporter_endpoint="localhost:1234",
@@ -67,21 +74,12 @@ class TestConfiguration(TestCase):
 
         self.assertIsInstance(call_arg, OTTracePropagator)
 
-    def test_all_environment_variables_used(self):
-        pass
-
-    def tearDown(self):
-        get_tracer_provider().shutdown()
-
-    @classmethod
-    def setUpClass(cls):
-        set_tracer_provider(TracerProvider())
-
     def test_no_service_name(self):
         with self.assertRaises(InvalidConfigurationError):
             with self.assertLogs(logger=_logger, level="ERROR") as log:
                 # service_name is set here as None in order to override any
-                # possible LS_SERVICE_NAME environment variable that may be set
+                # possible LS_SERVICE_NAME environment variable that may be
+                # set
                 configure_opentelemetry(service_name=None)
                 self.assertIn("service name missing", log.output[0])
 
@@ -142,36 +140,32 @@ class TestConfiguration(TestCase):
             headers=(("lightstep-access-token", "a" * 104),),
         )
 
-    def test_log_level(self):
+    def test_log_level_good_debug(self):
 
         with self.assertLogs(logger=_logger, level=DEBUG):
             configure_opentelemetry(
                 service_name="service_123",
                 access_token="a" * 104,
-                log_level="DEBUG",
+                log_level="DEBUg",
             )
 
-        with self.assertRaises(AssertionError):
-            with self.assertLogs(logger=_logger, level=WARNING):
-                configure_opentelemetry(
-                    service_name="service_123",
-                    access_token="a" * 104,
-                    log_level="WARNING",
-                )
+    def test_log_level_good_warning(self):
 
-        with self.assertLogs(logger=_logger, level=DEBUG):
+        with self.assertLogs(logger=_logger, level=WARNING):
             configure_opentelemetry(
                 service_name="service_123",
                 access_token="a" * 104,
-                log_level="DeBuG",
+                log_level="WARNINg",
             )
 
-        with self.assertRaises(AssertionError):
-            with self.assertLogs(logger=_logger, level=WARNING):
+    def test_log_level_bad_warning(self):
+
+        with self.assertRaises(InvalidConfigurationError):
+            with self.assertLogs(logger=_logger, level=ERROR):
                 configure_opentelemetry(
                     service_name="service_123",
                     access_token="a" * 104,
-                    log_level="WaRNiNG",
+                    log_level="WaRNiNGx",
                 )
 
     @patch("opentelemetry.launcher.configuration.gethostname")
@@ -189,14 +183,16 @@ class TestConfiguration(TestCase):
         )
 
         mock_resource.assert_called_with(
-            {
-                "telemetry.sdk.language": "python",
-                "telemetry.sdk.version": __version__,
-                "telemetry.sdk.name": "opentelemetry",
-                "service.name": "service_name",
-                "service.version": "service_version",
-                _ATTRIBUTE_HOST_NAME: "the_hostname",
-            }
+            BoundedAttributes(
+                attributes={
+                    "telemetry.sdk.language": "python",
+                    "telemetry.sdk.version": __version__,
+                    "telemetry.sdk.name": "opentelemetry",
+                    "service.name": "service_name",
+                    "service.version": "service_version",
+                    _ATTRIBUTE_HOST_NAME: "the_hostname",
+                }
+            )
         )
 
     @patch("opentelemetry.launcher.configuration.gethostname")
@@ -213,13 +209,15 @@ class TestConfiguration(TestCase):
         )
 
         mock_resource.assert_called_with(
-            {
-                "telemetry.sdk.language": "python",
-                "telemetry.sdk.version": __version__,
-                "telemetry.sdk.name": "opentelemetry",
-                "service.name": "service_name",
-                _ATTRIBUTE_HOST_NAME: "the_hostname",
-            }
+            BoundedAttributes(
+                attributes={
+                    "telemetry.sdk.language": "python",
+                    "telemetry.sdk.version": __version__,
+                    "telemetry.sdk.name": "opentelemetry",
+                    "service.name": "service_name",
+                    _ATTRIBUTE_HOST_NAME: "the_hostname",
+                }
+            )
         )
 
     def test_propagation(self):
@@ -319,13 +317,15 @@ class TestConfiguration(TestCase):
         )
 
         mock_resource.assert_called_with(
-            {
-                "telemetry.sdk.language": "python",
-                "telemetry.sdk.version": __version__,
-                "service.name": "service_name",
-                _ATTRIBUTE_HOST_NAME: "the_hostname",
-                "telemetry.sdk.name": "opentelemetry"
-            }
+            BoundedAttributes(
+                attributes={
+                    "telemetry.sdk.language": "python",
+                    "telemetry.sdk.version": __version__,
+                    "service.name": "service_name",
+                    _ATTRIBUTE_HOST_NAME: "the_hostname",
+                    "telemetry.sdk.name": "opentelemetry"
+                }
+            )
         )
 
     @patch("opentelemetry.launcher.configuration.gethostname")
@@ -345,13 +345,15 @@ class TestConfiguration(TestCase):
         )
 
         mock_resource.assert_called_with(
-            {
-                "telemetry.sdk.language": "python",
-                "telemetry.sdk.version": __version__,
-                "service.name": "service_name",
-                _ATTRIBUTE_HOST_NAME: "other_hostname",
-                "telemetry.sdk.name": "opentelemetry"
-            }
+            BoundedAttributes(
+                attributes={
+                    "telemetry.sdk.language": "python",
+                    "telemetry.sdk.version": __version__,
+                    "service.name": "service_name",
+                    _ATTRIBUTE_HOST_NAME: "other_hostname",
+                    "telemetry.sdk.name": "opentelemetry"
+                }
+            )
         )
 
     def test_backup_for_traces_endpoint(self):
