@@ -121,7 +121,7 @@ class TestConfiguration(TestCase):
             pass
 
         # The worker thread in MockBatchSpanProcessor is configured to
-        # wait 1ms before exporting. Sleeping here to give enough time to the
+        # wait 10ms before exporting. Sleeping here to give enough time to the
         # export method mock to be called.
         sleep(0.01)
 
