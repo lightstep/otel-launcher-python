@@ -60,6 +60,11 @@ _OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = _env.str(
     ),
 )
 _LS_SERVICE_NAME = _env.str("LS_SERVICE_NAME", None)
+_OTEL_SERVICE_NAME = _env.str("OTEL_SERVICE_NAME", None)
+
+if _LS_SERVICE_NAME is not None and _OTEL_SERVICE_NAME is None:
+    _OTEL_SERVICE_NAME = _LS_SERVICE_NAME
+
 _LS_SERVICE_VERSION = _env.str("LS_SERVICE_VERSION", None)
 _OTEL_PROPAGATORS = _env.str("OTEL_PROPAGATORS", "b3multi")
 _OTEL_RESOURCE_ATTRIBUTES = _env.str("OTEL_RESOURCE_ATTRIBUTES", "")
@@ -102,7 +107,7 @@ def _common_configuration(
 def configure_opentelemetry(
     access_token: str = _LS_ACCESS_TOKEN,
     span_exporter_endpoint: str = _OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
-    service_name: str = _LS_SERVICE_NAME,
+    service_name: str = _OTEL_SERVICE_NAME,
     service_version: str = _LS_SERVICE_VERSION,
     propagators: str = _OTEL_PROPAGATORS,
     resource_attributes: str = _OTEL_RESOURCE_ATTRIBUTES,
@@ -130,7 +135,7 @@ def configure_opentelemetry(
         span_exporter_endpoint (str): OTEL_EXPORTER_OTLP_TRACES_ENDPOINT, the
             URL of the Lightstep satellite where the spans are to be exported.
             Defaults to `ingest.lightstep.com:443`.
-        service_name (str): LS_SERVICE_NAME, the name of the service that is
+        service_name (str): OTEL_SERVICE_NAME, the name of the service that is
             used along with the access token to send spans to the Lighstep
             satellite. This configuration value is mandatory.
         service_version (str): LS_SERVICE_VERSION, the version of the service
@@ -200,7 +205,7 @@ def configure_opentelemetry(
 
         message = (
             "Invalid configuration: service name missing. "
-            "Set environment variable LS_SERVICE_NAME"
+            "Set environment variable OTEL_SERVICE_NAME"
         )
 
         if not _auto_instrumented:
