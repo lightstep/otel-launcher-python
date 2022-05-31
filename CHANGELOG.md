@@ -1,5 +1,9 @@
 ## Unreleased
 
+## 1.8.0
+
+- Updated dependencies to 1.11.1 & 0.30b1
+
 ## 1.7.2
 
 - Add support for OTEL_SERVICE_NAME
