@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
 
     steps:
     - name: Checkout lightstep/otel-launcher-python
@@ -36,13 +36,13 @@ jobs:
       run: nox -s test-${{ matrix.python-version }}
 
     - name: Run coverage test
-      if: matrix.python-version == 3.8
+      if: matrix.python-version == "3.8"
       run: |
         nox -s coverage
         bash <(curl -s https://codecov.io/bash)
 
     - name: Run lint
-      if: matrix.python-version == 3.8
+      if: matrix.python-version == "3.8"
       run: nox -s lint
 
     - name: Send data to OTLP backend

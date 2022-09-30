@@ -1,7 +1,7 @@
 from nox import session
 
 
-@session(python=["3.6", "3.7", "3.8", "3.9"], reuse_venv=True)
+@session(python=["3.7", "3.8", "3.9", "3.10"], reuse_venv=True)
 def test(session):
     session.install(".")
     session.install("-r", "requirements-test.txt")
@@ -22,7 +22,7 @@ def lint(session):
     session.run("pylint", "src")
 
 
-@session(python=["3.6", "3.7", "3.8", "3.9"], reuse_venv=True)
+@session(python=["3.7", "3.8", "3.9", "3.10"], reuse_venv=True)
 def coverage(session):
     session.install(".")
     session.install("-r", "requirements-test.txt")
