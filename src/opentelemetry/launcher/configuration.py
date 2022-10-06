@@ -42,6 +42,8 @@ from opentelemetry.sdk.trace.export import (
 )
 from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 
+from .version import __version__
+
 _env = Env()
 _logger = getLogger(__name__)
 
@@ -337,6 +339,9 @@ def configure_opentelemetry(
                     service_version,
                 )
             resource_attributes["service.version"] = service_version
+
+        resource_attributes["telemetry.distro.name"] = "lightstep"
+        resource_attributes["telemetry.distro.version"] = __version__
 
         resource_attributes_copy = resource.attributes.copy()
         resource_attributes_copy.update(resource_attributes)

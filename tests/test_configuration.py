@@ -26,6 +26,7 @@ from opentelemetry.launcher.configuration import (
     InvalidConfigurationError,
     _ATTRIBUTE_HOST_NAME,
 )
+from opentelemetry.launcher.version import __version__ as launcher_version
 from opentelemetry.sdk.version import __version__
 from opentelemetry import baggage, trace
 from opentelemetry.propagate import get_global_textmap
@@ -191,6 +192,8 @@ class TestConfiguration(TestCase):
                     "service.name": "service_name",
                     "service.version": "service_version",
                     _ATTRIBUTE_HOST_NAME: "the_hostname",
+                    "telemetry.distro.name": "lightstep",
+                    "telemetry.distro.version": launcher_version,
                 }
             )
         )
@@ -216,6 +219,8 @@ class TestConfiguration(TestCase):
                     "telemetry.sdk.name": "opentelemetry",
                     "service.name": "service_name",
                     _ATTRIBUTE_HOST_NAME: "the_hostname",
+                    "telemetry.distro.name": "lightstep",
+                    "telemetry.distro.version": launcher_version,
                 }
             )
         )
@@ -323,7 +328,9 @@ class TestConfiguration(TestCase):
                     "telemetry.sdk.version": __version__,
                     "service.name": "service_name",
                     _ATTRIBUTE_HOST_NAME: "the_hostname",
-                    "telemetry.sdk.name": "opentelemetry"
+                    "telemetry.sdk.name": "opentelemetry",
+                    "telemetry.distro.name": "lightstep",
+                    "telemetry.distro.version": launcher_version,
                 }
             )
         )
@@ -351,7 +358,9 @@ class TestConfiguration(TestCase):
                     "telemetry.sdk.version": __version__,
                     "service.name": "service_name",
                     _ATTRIBUTE_HOST_NAME: "other_hostname",
-                    "telemetry.sdk.name": "opentelemetry"
+                    "telemetry.sdk.name": "opentelemetry",
+                    "telemetry.distro.name": "lightstep",
+                    "telemetry.distro.version": launcher_version,
                 }
             )
         )
