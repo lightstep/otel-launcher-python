@@ -188,7 +188,7 @@ def configure_opentelemetry(
 
     log_level = log_level.upper()
 
-    if log_level not in log_levels.keys():
+    if log_level not in log_levels:
 
         message = (
             f"Invalid configuration: invalid log_level value. "
