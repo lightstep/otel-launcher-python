@@ -11,5 +11,3 @@ opentelemetry-util-http==0.34b0
 opentelemetry-propagator-ot-trace==0.34b0
 pytest
 flask
-# FIXME remove this when the dependencies above are updated to their latest versions
-protobuf==3.20.0
