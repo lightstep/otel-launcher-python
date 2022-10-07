@@ -32,9 +32,26 @@ from grpc import ssl_channel_credentials
 from pkg_resources import iter_entry_points
 
 from opentelemetry.instrumentation.distro import BaseDistro
+from opentelemetry.launcher._metrics_exporter import (
+    LightstepOTLPMetricExporter,
+)
 from opentelemetry.launcher.tracer import LightstepOTLPSpanExporter
+from opentelemetry.metrics import set_meter_provider
 from opentelemetry.propagate import set_global_textmap
 from opentelemetry.propagators.composite import CompositePropagator
+from opentelemetry.sdk.metrics import (
+    Counter,
+    Histogram,
+    MeterProvider,
+    ObservableCounter,
+    ObservableGauge,
+    ObservableUpDownCounter,
+    UpDownCounter,
+)
+from opentelemetry.sdk.metrics.export import (
+    AggregationTemporality,
+    PeriodicExportingMetricReader,
+)
 from opentelemetry.sdk.trace import Resource, TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
@@ -50,8 +67,12 @@ _logger = getLogger(__name__)
 _DEFAULT_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = (
     "https://ingest.lightstep.com:443"
 )
+_DEFAULT_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT = (
+    "https://ingest.lightstep.com:443"
+)
 
 _LS_ACCESS_TOKEN = _env.str("LS_ACCESS_TOKEN", None)
+_LS_METRICS_ENABLED = _env.bool("LS_METRICS_ENABLED", False)
 _OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = _env.str(
     "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
     # FIXME Remove support for the backup OTEL_EXPORTER_OTLP_SPAN_ENDPOINT
@@ -60,6 +81,10 @@ _OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = _env.str(
         "OTEL_EXPORTER_OTLP_SPAN_ENDPOINT",
         _DEFAULT_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
     ),
+)
+_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT = _env.str(
+    "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
+    _DEFAULT_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT,
 )
 _LS_SERVICE_NAME = _env.str("LS_SERVICE_NAME", None)
 _OTEL_SERVICE_NAME = _env.str("OTEL_SERVICE_NAME", None)
@@ -73,6 +98,9 @@ _OTEL_RESOURCE_ATTRIBUTES = _env.str("OTEL_RESOURCE_ATTRIBUTES", "")
 _OTEL_LOG_LEVEL = _env.str("OTEL_LOG_LEVEL", "ERROR")
 _OTEL_EXPORTER_OTLP_TRACES_INSECURE = _env.bool(
     "OTEL_EXPORTER_OTLP_TRACES_INSECURE", False
+)
+_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE = _env.str(
+    "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE", "CUMULATIVE"
 )
 
 # FIXME Find a way to "import" this value from:
@@ -108,7 +136,12 @@ def _common_configuration(
 
 def configure_opentelemetry(
     access_token: str = _LS_ACCESS_TOKEN,
+    metrics_enabled: bool = _LS_METRICS_ENABLED,
     span_exporter_endpoint: str = _OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
+    metrics_exporter_endpoint: str = _OTEL_EXPORTER_OTLP_METRICS_ENDPOINT,
+    metrics_exporter_temporality_preference: str = (
+        _OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+    ),
     service_name: str = _OTEL_SERVICE_NAME,
     service_version: str = _LS_SERVICE_VERSION,
     propagators: str = _OTEL_PROPAGATORS,
@@ -134,9 +167,36 @@ def configure_opentelemetry(
         access_token (str): LS_ACCESS_TOKEN, the access token used to
             authenticate with the Lightstep satellite. This configuration value
             is mandatory.
+        metrics_enabled (bool): LS_METRICS_ENABLED, a boolean value that
+            indicates if metrics are enabled or not. Defaults to `False`.
         span_exporter_endpoint (str): OTEL_EXPORTER_OTLP_TRACES_ENDPOINT, the
             URL of the Lightstep satellite where the spans are to be exported.
             Defaults to `ingest.lightstep.com:443`.
+        metrics_exporter_endpoint (str): OTEL_EXPORTER_OTLP_METRICS_ENDPOINT,
+            the URL of the Lightstep satellite where the metrics are to be
+            exported. Defaults to `ingest.lightstep.com:443`.
+        metrics_exporter_temporality_preference (str): OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE,
+            The preferred association between instrument type and temporality,
+            meaningless if `metrics_enabled` is `False`. Can be `DELTA` or
+            `CUMULATIVE`, defaults to `CUMULATIVE`.
+
+            If `CUMULATIVE`:
+
+            `Counter`: `CUMULATIVE`
+            `UpDownCounter`: `CUMULATIVE`
+            `Histogram`: `CUMULATIVE`
+            `ObservableCounter`: `CUMULATIVE`
+            `ObservableUpDownCounter`: `CUMULATIVE`
+            `ObservableGauge`: `CUMULATIVE`
+
+            If `DELTA`:
+
+            `Counter`: `DELTA`
+            `UpDownCounter`: `CUMULATIVE`
+            `Histogram`: `DELTA`
+            `ObservableCounter`: `DELTA`
+            `ObservableUpDownCounter`: `CUMULATIVE`
+            `ObservableGauge`: `CUMULATIVE`
         service_name (str): OTEL_SERVICE_NAME, the name of the service that is
             used along with the access token to send spans to the Lighstep
             satellite. This configuration value is mandatory.
@@ -223,10 +283,8 @@ def configure_opentelemetry(
             == _DEFAULT_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
         ):
             message = (
-                f"Invalid configuration: token missing. "
-                f"Must be set to send data to "
-                f"{_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT}."
-                f"Set environment variable LS_ACCESS_TOKEN"
+                "Invalid configuration: token missing. "
+                "Set environment variable LS_ACCESS_TOKEN"
             )
             if not _auto_instrumented:
                 message += (
@@ -360,13 +418,69 @@ def configure_opentelemetry(
 
     logged_attributes.update(resource_attributes)
 
-    for key, value in logged_attributes.items():
-        _logger.debug("%s: %s", key, value)
-
     if log_level <= DEBUG:
         get_tracer_provider().add_span_processor(
             BatchSpanProcessor(ConsoleSpanExporter())
         )
+
+    if metrics_enabled:
+
+        _logger.debug("configuring metrics")
+
+        logged_attributes[
+            "metrics_exporter_endpoint"
+        ] = metrics_exporter_endpoint
+
+        if metrics_exporter_temporality_preference == "DELTA":
+
+            instrument_class_temporality = {
+                Counter: AggregationTemporality.DELTA,
+                UpDownCounter: AggregationTemporality.CUMULATIVE,
+                Histogram: AggregationTemporality.DELTA,
+                ObservableCounter: AggregationTemporality.DELTA,
+                ObservableUpDownCounter: AggregationTemporality.CUMULATIVE,
+                ObservableGauge: AggregationTemporality.CUMULATIVE,
+            }
+
+        elif metrics_exporter_temporality_preference == "CUMULATIVE":
+
+            instrument_class_temporality = {
+                Counter: AggregationTemporality.CUMULATIVE,
+                UpDownCounter: AggregationTemporality.CUMULATIVE,
+                Histogram: AggregationTemporality.CUMULATIVE,
+                ObservableCounter: AggregationTemporality.CUMULATIVE,
+                ObservableUpDownCounter: AggregationTemporality.CUMULATIVE,
+                ObservableGauge: AggregationTemporality.CUMULATIVE,
+            }
+
+        else:
+
+            message = (
+                f"Invalid configuration: "
+                f"invalid metrics_exporter_temporality_preference: "
+                f"{metrics_exporter_temporality_preference}. It must be "
+                f"DELTA or CUMULATIVE."
+            )
+            _logger.error(message)
+            raise InvalidConfigurationError(message)
+
+        exporter = LightstepOTLPMetricExporter(
+            endpoint=metrics_exporter_endpoint,
+            credentials=credentials,
+            headers=headers,
+            preferred_temporality=instrument_class_temporality,
+        )
+
+        reader = PeriodicExportingMetricReader(
+            exporter, export_interval_millis=5_000
+        )
+
+        provider = MeterProvider(metric_readers=[reader])
+
+        set_meter_provider(provider)
+
+    for key, value in logged_attributes.items():
+        _logger.debug("%s: %s", key, value)
 
 
 def _validate_token(token: str):

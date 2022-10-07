@@ -1,5 +1,9 @@
 ## Unreleased
 
+- Add support for LS_METRICS_ENABLED
+- Add support for OTLP_EXPORTER_METRICS_ENDPOINT
+- Add support for OTLP_EXPORTER_METRICS_TEMPORALITY_PREFERENCE
+
 ## 1.10.0
 
 - Updated dependencies to 1.14.0 & 0.35b0

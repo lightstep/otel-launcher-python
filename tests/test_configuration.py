@@ -20,6 +20,17 @@ from logging import DEBUG, WARNING, ERROR
 from importlib import reload
 from os import environ
 
+from opentelemetry.sdk.metrics import (
+    Counter,
+    Histogram,
+    ObservableCounter,
+    ObservableGauge,
+    ObservableUpDownCounter,
+    UpDownCounter,
+)
+from opentelemetry.sdk.metrics.export import (
+    AggregationTemporality
+)
 from opentelemetry.launcher.configuration import (
     configure_opentelemetry,
     _logger,
@@ -42,6 +53,29 @@ class TestConfiguration(TestCase):
     def setUp(self):
         trace._TRACER_PROVIDER_SET_ONCE = Once()
         trace._TRACER_PROVIDER = None
+
+    @patch("opentelemetry.launcher.configuration.LightstepOTLPMetricExporter")
+    def test_metrics_enabled(self, mock_metrics_exporter):
+
+        configure_opentelemetry(
+            service_name="service_name",
+            metrics_enabled=True,
+            access_token="a" * 104
+        )
+
+        mock_metrics_exporter.assert_called_with(
+            endpoint="https://ingest.lightstep.com:443",
+            credentials=ANY,
+            headers=(("lightstep-access-token", "a" * 104),),
+            preferred_temporality={
+                Counter: AggregationTemporality.CUMULATIVE,
+                UpDownCounter: AggregationTemporality.CUMULATIVE,
+                Histogram: AggregationTemporality.CUMULATIVE,
+                ObservableCounter: AggregationTemporality.CUMULATIVE,
+                ObservableUpDownCounter: AggregationTemporality.CUMULATIVE,
+                ObservableGauge: AggregationTemporality.CUMULATIVE,
+            }
+        )
 
     @patch("opentelemetry.launcher.configuration.CompositePropagator")
     def test_propagator_entry_point(self, mock_compositepropagator):
