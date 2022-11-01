@@ -21,9 +21,19 @@ configure_opentelemetry(
 meter = get_meter_provider().get_meter("getting-started", "0.1.2")
 
 # Counter
-counter = meter.create_counter("counter")
+histogram = meter.create_histogram("exponential_histogram")
 
 
 def test_metrics_example():
-    counter.add(1)
-    sleep(1)
+
+    for i in range(100):
+
+        histogram.record(
+            i,
+            attributes={
+                "test_exponential_histogram_key":
+                "test_exponential_histogram_value"
+            }
+        )
+        sleep(5)
+        print(i)
