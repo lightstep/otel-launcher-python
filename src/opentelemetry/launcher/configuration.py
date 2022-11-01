@@ -294,6 +294,8 @@ def configure_opentelemetry(
             _logger.error(message)
             raise InvalidConfigurationError(message)
 
+    access_token = access_token.strip()
+
     if access_token is not None and not _validate_token(access_token):
         message = (
             "Invalid configuration: invalid token. "

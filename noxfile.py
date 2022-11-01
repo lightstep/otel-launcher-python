@@ -3,8 +3,8 @@ from nox import session
 
 @session(python=["3.7", "3.8", "3.9", "3.10"], reuse_venv=True)
 def test(session):
-    session.install(".")
     session.install("-r", "requirements-test.txt")
+    session.install(".")
 
     if session.posargs:
         session.run("pytest", *session.posargs)
