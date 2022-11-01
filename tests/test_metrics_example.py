@@ -1,12 +1,6 @@
-from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import (
-    OTLPMetricExporter,
-)
 from opentelemetry.metrics import (
     get_meter_provider,
-    set_meter_provider,
 )
-from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from time import sleep
 
 from opentelemetry.launcher import configure_opentelemetry
@@ -32,4 +26,4 @@ counter = meter.create_counter("counter")
 
 def test_metrics_example():
     counter.add(1)
-    sleep(5)
+    sleep(1)
