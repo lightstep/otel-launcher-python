@@ -11,3 +11,4 @@ opentelemetry-util-http==0.34b0
 opentelemetry-propagator-ot-trace==0.34b0
 pytest
 flask
+backoff~=1.0.0
