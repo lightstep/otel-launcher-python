@@ -1,5 +1,9 @@
 ## Unreleased
 
+## 1.10.0
+
+- Updated dependencies to 1.14.0 & 0.35b0
+
 ## 1.9.0
 
 - Remove support for Python 3.6
