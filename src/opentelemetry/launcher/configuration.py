@@ -471,9 +471,7 @@ def configure_opentelemetry(
             preferred_temporality=instrument_class_temporality,
         )
 
-        reader = PeriodicExportingMetricReader(
-            exporter, export_interval_millis=5_000
-        )
+        reader = PeriodicExportingMetricReader(exporter)
 
         provider = MeterProvider(metric_readers=[reader])
 
