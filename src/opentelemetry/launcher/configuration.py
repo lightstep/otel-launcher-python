@@ -281,6 +281,11 @@ def configure_opentelemetry(
         if (
             span_exporter_endpoint
             == _DEFAULT_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+            or (
+                metrics_enabled
+                and metrics_exporter_endpoint
+                == (_DEFAULT_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT)
+            )
         ):
             message = (
                 "Invalid configuration: token missing. "

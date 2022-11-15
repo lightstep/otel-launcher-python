@@ -128,6 +128,17 @@ class TestConfiguration(TestCase):
                 )
                 self.assertIn("token missing", log.output[0])
 
+        with self.assertRaises(InvalidConfigurationError):
+            with self.assertLogs(logger=_logger, level="ERROR") as log:
+                # access_token is set here as None in order to override any
+                # possible LS_ACCES_TOKEN environment variable that may be set
+                configure_opentelemetry(
+                    service_name="service-123",
+                    access_token=None,
+                    metrics_enabled=True
+                )
+                self.assertIn("token missing", log.output[0])
+
     def test_no_token_other_endpoint(self):
         # no exception is thrown
         configure_opentelemetry(
