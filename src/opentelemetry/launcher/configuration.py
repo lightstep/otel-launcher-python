@@ -102,6 +102,7 @@ _OTEL_EXPORTER_OTLP_TRACES_INSECURE = _env.bool(
 _OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE = _env.str(
     "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE", "CUMULATIVE"
 )
+_OTEL_METRIC_EXPORT_INTERVAL = _env.int("OTEL_METRIC_EXPORT_INTERVAL", 60000)
 
 # FIXME Find a way to "import" this value from:
 # https://github.com/open-telemetry/opentelemetry-collector/blob/master/translator/conventions/opentelemetry.go
@@ -139,9 +140,10 @@ def configure_opentelemetry(
     metrics_enabled: bool = _LS_METRICS_ENABLED,
     span_exporter_endpoint: str = _OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
     metrics_exporter_endpoint: str = _OTEL_EXPORTER_OTLP_METRICS_ENDPOINT,
-    metrics_exporter_temporality_preference: str = (
+    metrics_exporter_temporality_preference: int = (
         _OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
     ),
+    metrics_exporter_interval: str = (_OTEL_METRIC_EXPORT_INTERVAL),
     service_name: str = _OTEL_SERVICE_NAME,
     service_version: str = _LS_SERVICE_VERSION,
     propagators: str = _OTEL_PROPAGATORS,
@@ -197,6 +199,8 @@ def configure_opentelemetry(
             `ObservableCounter`: `DELTA`
             `ObservableUpDownCounter`: `CUMULATIVE`
             `ObservableGauge`: `CUMULATIVE`
+        metrics_exporter_interval (int): OTEL_METRIC_EXPORT_INTERVAL, the
+            periodic interval in miliseconds to wait before exporting metrics.
         service_name (str): OTEL_SERVICE_NAME, the name of the service that is
             used along with the access token to send spans to the Lighstep
             satellite. This configuration value is mandatory.
@@ -476,7 +480,9 @@ def configure_opentelemetry(
             preferred_temporality=instrument_class_temporality,
         )
 
-        reader = PeriodicExportingMetricReader(exporter)
+        reader = PeriodicExportingMetricReader(
+            exporter, export_timeout_millis=metrics_exporter_interval
+        )
 
         provider = MeterProvider(metric_readers=[reader])
 
