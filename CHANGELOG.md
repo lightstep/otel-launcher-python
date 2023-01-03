@@ -1,5 +1,9 @@
 ## Unreleased
 
+## 1.12.0
+
+- Updated dependencies to 1.15.0 & 0.36b0
+- 
 ## 1.11.0
 
 - Add support for LS_METRICS_ENABLED
