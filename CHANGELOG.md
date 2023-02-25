@@ -1,5 +1,10 @@
 ## Unreleased
 
+## 1.12.0
+
+- Add support for OTEL_METRIC_EXPORT_INTERVAL
+- Updated dependencies to 1.16.0 & 0.37b0
+
 ## 1.11.0
 
 - Add support for LS_METRICS_ENABLED

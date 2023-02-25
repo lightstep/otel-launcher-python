@@ -38,7 +38,7 @@ def coverage(session):
     )
 
 
-@session(python=["3.7"], reuse_venv=True)
+@session(python=["3.9"], reuse_venv=True)
 def example(session):
     session.install(".")
     session.install("-r", "requirements-test.txt")
