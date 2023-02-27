@@ -253,7 +253,6 @@ def configure_opentelemetry(
     log_level = log_level.upper()
 
     if log_level not in log_levels:
-
         message = (
             f"Invalid configuration: invalid log_level value. "
             f"It must be one of {', '.join(log_levels.keys())}"
@@ -268,7 +267,6 @@ def configure_opentelemetry(
     _logger.debug("configuration")
 
     if not _validate_service_name(service_name):
-
         message = (
             "Invalid configuration: service name missing. "
             "Set environment variable OTEL_SERVICE_NAME"
@@ -316,7 +314,6 @@ def configure_opentelemetry(
     propagator_instances = []
 
     for propagator in propagators:
-
         try:
             propagator_instance = next(
                 iter_entry_points("opentelemetry_propagator", name=propagator),
@@ -359,7 +356,6 @@ def configure_opentelemetry(
     if _ATTRIBUTE_HOST_NAME not in resource_attributes.keys() or not (
         resource_attributes[_ATTRIBUTE_HOST_NAME]
     ):
-
         no_hostname_message = (
             "set it with the environment variable OTEL_RESOURCE_ATTRIBUTES or "
             'with the resource_attributes argument. Use "host.name" as key '
@@ -380,7 +376,6 @@ def configure_opentelemetry(
     tracer_provider = get_tracer_provider()
 
     if isinstance(tracer_provider, TracerProvider):
-
         # FIXME: Accessing a private attribute here because resource is no
         # longer settable since:
         # https://github.com/open-telemetry/opentelemetry-python/pull/1652
@@ -433,7 +428,6 @@ def configure_opentelemetry(
         )
 
     if metrics_enabled:
-
         _logger.debug("configuring metrics")
 
         logged_attributes[
@@ -441,7 +435,6 @@ def configure_opentelemetry(
         ] = metrics_exporter_endpoint
 
         if metrics_exporter_temporality_preference == "DELTA":
-
             instrument_class_temporality = {
                 Counter: AggregationTemporality.DELTA,
                 UpDownCounter: AggregationTemporality.CUMULATIVE,
@@ -452,7 +445,6 @@ def configure_opentelemetry(
             }
 
         elif metrics_exporter_temporality_preference == "CUMULATIVE":
-
             instrument_class_temporality = {
                 Counter: AggregationTemporality.CUMULATIVE,
                 UpDownCounter: AggregationTemporality.CUMULATIVE,
@@ -463,7 +455,6 @@ def configure_opentelemetry(
             }
 
         else:
-
             message = (
                 f"Invalid configuration: "
                 f"invalid metrics_exporter_temporality_preference: "
