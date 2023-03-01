@@ -11,3 +11,4 @@ opentelemetry-util-http==0.37b0
 opentelemetry-propagator-ot-trace==0.37b0
 pytest
 flask
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
