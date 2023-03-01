@@ -500,3 +500,21 @@ class TestConfiguration(TestCase):
             configuration._ATTRIBUTE_HOST_NAME = (
                 original_attribute_host_name
             )
+
+    # FIXME use autospec when the implementation the OTel SDK does not call
+    # private attributes of PeriodicExportingMetricReader.
+    @patch(
+        "opentelemetry.launcher.configuration.PeriodicExportingMetricReader",
+    )
+    def test_metric_export_interval(self, mock_periodic_exporter_metric_reader):
+
+        configure_opentelemetry(
+            service_name="service_name",
+            service_version="service_version",
+            access_token="a" * 104,
+            propagators="b3multi,baggage,tracecontext",
+            metrics_enabled=True,
+            metrics_exporter_interval=0,
+        )
+
+        mock_periodic_exporter_metric_reader.assert_called_with(ANY, export_timeout_millis=0)
