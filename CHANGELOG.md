@@ -1,5 +1,9 @@
 ## Unreleased
 
+## 1.13.0
+
+- Updated setuptools to 65.5.1
+
 ## 1.12.0
 
 - Add support for OTEL_METRIC_EXPORT_INTERVAL
