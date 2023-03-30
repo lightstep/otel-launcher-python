@@ -1,5 +1,9 @@
 ## Unreleased
 
+## 1.14.0
+
+- Updated opentelemetry-instrumentation to 0.38b0
+
 ## 1.13.0
 
 - Updated setuptools to 65.5.1
