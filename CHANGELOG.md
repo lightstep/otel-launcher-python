@@ -3,6 +3,7 @@
 ## 1.14.0
 
 - Updated opentelemetry-instrumentation to 0.38b0
+- Updated dependencies to 1.17.0 & 0.38b0
 
 ## 1.13.0
 
