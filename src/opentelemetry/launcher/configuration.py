@@ -100,7 +100,7 @@ _OTEL_EXPORTER_OTLP_TRACES_INSECURE = _env.bool(
     "OTEL_EXPORTER_OTLP_TRACES_INSECURE", False
 )
 _OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE = _env.str(
-    "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE", "CUMULATIVE"
+    "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE", "LOWMEMORY"
 )
 _OTEL_METRIC_EXPORT_INTERVAL = _env.int("OTEL_METRIC_EXPORT_INTERVAL", 60000)
 
@@ -179,8 +179,8 @@ def configure_opentelemetry(
             exported. Defaults to `ingest.lightstep.com:443`.
         metrics_exporter_temporality_preference (str): OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE,
             The preferred association between instrument type and temporality,
-            meaningless if `metrics_enabled` is `False`. Can be `DELTA` or
-            `CUMULATIVE`, defaults to `CUMULATIVE`.
+            meaningless if `metrics_enabled` is `False`. Can be `DELTA`,
+            `CUMULATIVE` or `LOWMEMORY`, defaults to `LOWMEMORY`.
 
             If `CUMULATIVE`:
 
@@ -197,6 +197,15 @@ def configure_opentelemetry(
             `UpDownCounter`: `CUMULATIVE`
             `Histogram`: `DELTA`
             `ObservableCounter`: `DELTA`
+            `ObservableUpDownCounter`: `CUMULATIVE`
+            `ObservableGauge`: `CUMULATIVE`
+
+            If `LOWMEMORY`:
+
+            `Counter`: `DELTA`
+            `UpDownCounter`: `CUMULATIVE`
+            `Histogram`: `DELTA`
+            `ObservableCounter`: `CUMULATIVE`
             `ObservableUpDownCounter`: `CUMULATIVE`
             `ObservableGauge`: `CUMULATIVE`
         metrics_exporter_interval (int): OTEL_METRIC_EXPORT_INTERVAL, the
@@ -454,12 +463,21 @@ def configure_opentelemetry(
                 ObservableGauge: AggregationTemporality.CUMULATIVE,
             }
 
+        elif metrics_exporter_temporality_preference == "LOWMEMORY":
+            instrument_class_temporality = {
+                Counter: AggregationTemporality.DELTA,
+                UpDownCounter: AggregationTemporality.CUMULATIVE,
+                Histogram: AggregationTemporality.DELTA,
+                ObservableCounter: AggregationTemporality.CUMULATIVE,
+                ObservableUpDownCounter: AggregationTemporality.CUMULATIVE,
+                ObservableGauge: AggregationTemporality.CUMULATIVE,
+            }
         else:
             message = (
                 f"Invalid configuration: "
                 f"invalid metrics_exporter_temporality_preference: "
                 f"{metrics_exporter_temporality_preference}. It must be "
-                f"DELTA or CUMULATIVE."
+                f"DELTA, CUMULATIVE or LOWMEMORY."
             )
             _logger.error(message)
             raise InvalidConfigurationError(message)

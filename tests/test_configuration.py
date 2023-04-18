@@ -68,9 +68,9 @@ class TestConfiguration(TestCase):
             credentials=ANY,
             headers=(("lightstep-access-token", "a" * 104),),
             preferred_temporality={
-                Counter: AggregationTemporality.CUMULATIVE,
+                Counter: AggregationTemporality.DELTA,
                 UpDownCounter: AggregationTemporality.CUMULATIVE,
-                Histogram: AggregationTemporality.CUMULATIVE,
+                Histogram: AggregationTemporality.DELTA,
                 ObservableCounter: AggregationTemporality.CUMULATIVE,
                 ObservableUpDownCounter: AggregationTemporality.CUMULATIVE,
                 ObservableGauge: AggregationTemporality.CUMULATIVE,
