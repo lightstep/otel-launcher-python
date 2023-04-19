@@ -1,5 +1,9 @@
 ## Unreleased
 
+## 1.15.0
+
+- Use LOWMEMORY as default temporality
+
 ## 1.14.0
 
 - Updated opentelemetry-instrumentation to 0.38b0
