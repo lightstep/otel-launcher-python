@@ -1,6 +1,11 @@
 ![build status](https://github.com/lightstep/otel-launcher-python/workflows/Python%20package/badge.svg) [![PyPI version](https://badge.fury.io/py/opentelemetry-launcher.svg)](https://badge.fury.io/py/opentelemetry-launcher) [![Downloads](https://pepy.tech/badge/opentelemetry-launcher)](https://pepy.tech/project/opentelemetry-launcher)
 
-# Launcher, a Lightstep Distro for OpenTelemetry 🚀
+# Launcher, a Lightstep Distro for OpenTelemetry 🚀 [Deprecated]
+
+In August 2023, [Lightstep became ServiceNow
+Cloud](https://docs.lightstep.com/docs/banner-faq) Observability. To ease the
+transition, all code artifacts will continue to use the Lightstep name. You
+don't need to do anything to keep using this repository.
 
 ### What is Launcher?
 
