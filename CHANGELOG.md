@@ -1,5 +1,9 @@
 ## Unreleased
 
+## 1.16.0
+
+- Mark as deprecated
+
 ## 1.15.0
 
 - Use LOWMEMORY as default temporality
